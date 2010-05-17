@@ -13,7 +13,7 @@
 			</intent-filter>
 		</activity>
 
-		<receiver android:name=".AddUrl">
+		<receiver android:name=".IntentHandler">
 			<intent-filter>
 				<action android:name="android.intent.action.SEND" />
 				<category android:name="android.intent.category.DEFAULT" />

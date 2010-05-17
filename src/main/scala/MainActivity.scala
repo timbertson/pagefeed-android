@@ -9,7 +9,7 @@ import net.gfxmonk.android.pagefeed.UrlStore
  
 class MainActivity extends ListActivity {
 
-	override def onCreate(savedInstanceState: Bundle) {
+	override def onCreate(savedInstanceState: Bundle) = {
 		super.onCreate(savedInstanceState)
 
 		var urlStore = new UrlStore(this)

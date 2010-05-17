@@ -39,7 +39,7 @@ class UrlStore (context: Context) extends
 		");")
 	}
 
-	override def onUpgrade(db:SQLiteDatabase, old_version:Int, new_version:Int) {
+	override def onUpgrade(db:SQLiteDatabase, old_version:Int, new_version:Int) = {
 		// noop (yet)
 	}
 
