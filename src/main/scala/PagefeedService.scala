@@ -4,6 +4,7 @@ import _root_.android.app.Service
 import _root_.android.content.Context
 import _root_.android.content.Intent
 import _root_.android.net.Uri
+import net.gfxmonk.android.pagefeed.UrlStore
  
 class PagefeedService extends Service {
 	override def onStartCommand(intent: Intent, flags: Int, id: Int):Int = {
@@ -20,7 +21,13 @@ class PagefeedService extends Service {
 		null
 	}
 
-	private def add(url: Uri) = {
+	private def add(uri: Uri) = {
+		val store = new UrlStore(this)
+		try {
+			store.add(uri)
+		} finally {
+			store.close()
+		}
 	}
 
 	private def sync() = {

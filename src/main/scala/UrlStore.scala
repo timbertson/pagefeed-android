@@ -4,11 +4,11 @@ import _root_.android.content.Context
 import scala.io.Source
 import java.io.FileNotFoundException
 import java.util.logging.Logger
-import net.gfxmonk.android.pagefeed.Url
 import _root_.android.database.sqlite.SQLiteDatabase
 import _root_.android.database.sqlite.SQLiteDatabase.CursorFactory
 import _root_.android.database.sqlite.SQLiteOpenHelper
 import _root_.android.content.ContentValues
+import _root_.android.net.Uri
 
 
 object UrlStore {
@@ -47,11 +47,14 @@ class UrlStore (context: Context) extends
 		db.query(cls.table_name, Array(UrlStore.ID, UrlStore.URL, UrlStore.DIRTY), "active = 1", Array(), null, null, null)
 	}
 
-	def add(u:Url) = {
+	def add(u:String) = {
 		val values = new ContentValues()
-		values.put(cls.URL, u.url)
+		values.put(cls.URL, u)
 		values.put(cls.DIRTY, true)
+		values.put(cls.ACTIVE, true)
 		db.insert(cls.table_name, null, values)
 	}
+
+	def add(u:Uri):Unit = add(u.toString)
 
 }
