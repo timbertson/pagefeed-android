@@ -5,8 +5,14 @@ import net.gfxmonk.android.pagefeed.PagefeedWeb
 
 class Sync (store: UrlStore) {
 
+	val pagefeed = new PagefeedWeb()
 	def run() = {
-		
+		processRemoteChanges()
+		processLocalChanges()
+	}
+
+	private def processRemoteChanges = {
+		// TODO
 	}
 
 	private def processLocalChanges = {
