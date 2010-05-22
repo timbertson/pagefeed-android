@@ -4,7 +4,6 @@ import _root_.android.app.Service
 import _root_.android.content.Context
 import _root_.android.content.Intent
 import _root_.android.net.Uri
-import net.gfxmonk.android.pagefeed.UrlStore
  
 class PagefeedService extends Service {
 	override def onStartCommand(intent: Intent, flags: Int, id: Int):Int = {
@@ -34,6 +33,7 @@ class PagefeedService extends Service {
 	}
 
 	private def invalidIntent() = {
+		Util.toast("invalid intent", getApplicationContext())
 	}
 
 }

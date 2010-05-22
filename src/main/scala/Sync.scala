@@ -1,22 +1,23 @@
 package net.gfxmonk.android.pagefeed
-import net.gfxmonk.android.pagefeed.UrlStore
-import net.gfxmonk.android.pagefeed.Url
-import net.gfxmonk.android.pagefeed.PagefeedWeb
 
 class Sync (store: UrlStore) {
 
 	val pagefeed = new PagefeedWeb()
 	def run() = {
-		processRemoteChanges()
-		processLocalChanges()
+		processRemoteChanges
+		processLocalChanges
 	}
 
 	private def processRemoteChanges = {
-		// TODO
+		val remoteUrls = pagefeed.list().map( u => Url.remote(u) )
+		val localUrls = store.active().toList
+		for (newRemoteUrl <- (remoteUrls -- localUrls)) {
+			store.add(newRemoteUrl)
+		}
 	}
 
 	private def processLocalChanges = {
-		store.eachDirty { item =>
+		store.dirty().foreach { item =>
 			if(item.active) {
 				addItemRemotely(item)
 			} else {
@@ -26,10 +27,10 @@ class Sync (store: UrlStore) {
 	}
 
 	private def removeItemRemotely(item: Url) = {
-		PagefeedWeb.delete(item.url)
+		pagefeed.delete(item.url)
 	}
 
 	private def addItemRemotely(item: Url) = {
-		PagefeedWeb.add(item.url)
+		pagefeed.add(item.url)
 	}
 }

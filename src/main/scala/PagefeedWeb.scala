@@ -1,5 +1,4 @@
 package net.gfxmonk.android.pagefeed
-import net.gfxmonk.android.pagefeed.Url
 
 class PagefeedWeb {
 	var auth:Any = null
@@ -22,7 +21,7 @@ class PagefeedWeb {
 
 	def list():List[String] = {
 		var response = get(BASE + "page/list/")
-		response.body.lines.map(_.trim).filter(_.length > 0)
+		response.body.lines.map(_.trim).filter(_.length > 0).toList
 	}
 
 	private def get(url:String) = {
@@ -30,7 +29,7 @@ class PagefeedWeb {
 		new Response(200, "OK")
 	}
 
-	private def post(url:String, params:Map) = {
+	private def post(url:String, params:Map[String,String]) = {
 		// TODO
 		new Response(200, "OK")
 	}
