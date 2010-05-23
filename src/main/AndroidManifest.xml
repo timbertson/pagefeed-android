@@ -6,6 +6,7 @@
 	<uses-sdk android:minSdkVersion="4"></uses-sdk>
 
 	<uses-permission android:name="android.permission.GET_ACCOUNTS"></uses-permission>
+	<uses-permission android:name="android.permission.MANAGE_ACCOUNTS"></uses-permission>
 	<uses-permission android:name="android.permission.USE_CREDENTIALS"></uses-permission>
 	<uses-permission android:name="android.permission.INTERNET"></uses-permission>
 
@@ -25,6 +26,14 @@
 			</intent-filter>
 		</activity>
 
+		<!-- <activity android:name=".auth.AccountList"/> -->
+		<activity android:label="accts" android:name=".auth.AccountList">
+			<intent-filter>
+				<action android:name="android.intent.action.MAIN"/>
+				<category android:name="android.intent.category.LAUNCHER"/>
+			</intent-filter>
+		</activity>
+		<activity android:name=".auth.AppInfo"/>
 		<service android:name=".PagefeedService" />
 
 	</application>

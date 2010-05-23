@@ -5,13 +5,13 @@ intent:
 	adb shell am start -D -a android.intent.action.SEND -c android.intent.category.DEFAULT -t text/plain -d http://google.com/ -n net.gfxmonk.android.pagefeed/.ShareLink
 
 emulate:
-	sbt ~reinstall-emulator
+	sbt warn ~reinstall-emulator
 
 log:
 	adb logcat \*:E pagefeed:\*
 
 log_more:
-	abd logcat \*:I pagefeed:\*
+	adb logcat \*:I pagefeed:\*
 
 size=128
 icon:
