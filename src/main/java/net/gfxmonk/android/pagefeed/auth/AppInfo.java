@@ -4,9 +4,12 @@ import net.gfxmonk.android.pagefeed.R;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.net.UnknownHostException;
 
 import org.apache.http.HttpResponse;
+import org.apache.http.HttpEntity;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.params.ClientPNames;
@@ -28,6 +31,7 @@ import android.widget.Toast;
 public class AppInfo extends Activity {
 	DefaultHttpClient http_client = new DefaultHttpClient();
 	String baseUrl;
+	boolean success;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -64,8 +68,7 @@ public class AppInfo extends Activity {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				throw new RuntimeException(e);
 			}
 		}
 	};
@@ -92,12 +95,10 @@ public class AppInfo extends Activity {
 					if(cookie.getName().equals("ACSID"))
 						return true;
 				}
-			} catch (ClientProtocolException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+			} catch (UnknownHostException e) {
+				return false;
+			} catch (Exception e) {
+				throw new RuntimeException(e);
 			} finally {
 				http_client.getParams().setBooleanParameter(ClientPNames.HANDLE_REDIRECTS, true);
 			}
@@ -105,7 +106,10 @@ public class AppInfo extends Activity {
 		}
 		
 		protected void onPostExecute(Boolean result) {
-			new AuthenticatedRequestTask().execute("http://pagefeed.appspot.com/");
+			success = result;
+			if (result) {
+				new AuthenticatedRequestTask().execute("http://pagefeed.appspot.com/");
+			}
 		}
 	}
 
@@ -115,27 +119,20 @@ public class AppInfo extends Activity {
 			try {
 				HttpGet http_get = new HttpGet(urls[0]);
 				return http_client.execute(http_get);
-			} catch (ClientProtocolException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+			} catch (Exception e) {
+				throw new RuntimeException(e);
 			}
-			return null;
 		}
 		
 		protected void onPostExecute(HttpResponse result) {
 			try {
-				BufferedReader reader = new BufferedReader(new InputStreamReader(result.getEntity().getContent()));
+				HttpEntity entity = result.getEntity();
+				InputStream content = entity.getContent();
+				BufferedReader reader = new BufferedReader(new InputStreamReader(content));
 				String first_line = reader.readLine();
 				Toast.makeText(getApplicationContext(), "line: " + first_line, Toast.LENGTH_LONG).show();
-			} catch (IllegalStateException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+			} catch (Exception e) {
+				throw new RuntimeException(e);
 			}
 		}
 	}
