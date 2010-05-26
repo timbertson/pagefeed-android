@@ -83,7 +83,7 @@ class UrlSet(val cursor:Cursor) extends Iterable[Url] {
 	val columnMap = Map[String,Int]()
 	val indexes = ATTRIBUTES.map(attr => columnMap.put(attr, cursor.getColumnIndexOrThrow(attr)))
 
-	override def elements() = {
+	override def iterator() = {
 		new Iterator[Url] {
 			def hasNext = ! cursor.isAfterLast()
 			def next = {
