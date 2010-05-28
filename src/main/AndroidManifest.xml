@@ -36,5 +36,12 @@
 		<activity android:name=".auth.AppInfo"/>
 		<service android:name=".PagefeedService" />
 
+		<service android:name=".sync.SyncAdapterService" android:exported="true" android:process=":contacts">
+			<intent-filter>
+				<action android:name="android.content.SyncAdapter" />
+			</intent-filter>
+			<meta-data android:name="android.content.SyncAdapter" android:resource="@xml/syncadapter" />
+		</service>
+
 	</application>
 </manifest>
