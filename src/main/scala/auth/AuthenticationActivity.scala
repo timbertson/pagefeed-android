@@ -4,7 +4,8 @@ import net.gfxmonk.android.pagefeed._
 import java.io.BufferedReader
 import java.io.IOException
 import java.io.InputStreamReader
-import scala.collection.JavaConversions._
+import scala.collection.jcl.BufferWrapper
+/*import scala.collection.JavaConversions._*/
 
 import org.apache.http.HttpResponse
 import org.apache.http.client.ClientProtocolException
@@ -28,7 +29,7 @@ import _root_.android.widget.Toast
 class AppInfo extends Activity {
 	val http_client:DefaultHttpClient = new DefaultHttpClient()
 
-	/*implicit def javaList2Seq[T](javaList: java.util.List[T]) : Seq[T] = new BufferWrapper[T]() { def underlying = javaList }*/
+	implicit def javaList2Seq[T](javaList: java.util.List[T]) : Seq[T] = new BufferWrapper[T]() { def underlying = javaList }
 
 	override def onCreate(savedInstanceState:Bundle) = {
 		super.onCreate(savedInstanceState)
