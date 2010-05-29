@@ -20,6 +20,7 @@ import _root_.org.json.JSONException
 import _root_.org.apache.http.client.methods.HttpGet
 import _root_.org.apache.http.client.params.ClientPNames
 import _root_.org.apache.http.cookie.Cookie
+import _root_.org.apache.http.client.HttpClient
 import _root_.org.apache.http.impl.client.DefaultHttpClient
 
 import _root_.java.io.IOException
@@ -43,55 +44,65 @@ class SyncAdapter(context: Context, autoInitialize: Boolean)
 		provider: ContentProviderClient,
 		result: SyncResult) =
 {
-		def log(s:Throwable) = Log.w(TAG, s)
-		try {
+		var client:HttpClient = try {
 			// use the account manager to request the credentials
 			val authToken = accountManager.blockingGetAuthToken(account, AUTHTOKEN_TYPE, true /* notifyAuthFailure */)
-			Log.d(TAG, "sync woo!")
+			Log.d(TAG, "\n\n\n\n\n\n\n\nsync woo!")
 			Log.d(TAG, "got token: " + authToken)
-			val cookie = getCookie(authToken)
-			Log.d(TAG, "got cookie: " + cookie)
-			lastUpdated = new Date()
+			getAuthenticatedClient(authToken)
 		} catch {
 			case e:ParseException  => {
-				log(e)
 				result.stats.numParseExceptions += 1
+				throw e
 			}
 			case e:AuthenticatorException => {
-				log(e)
 				result.stats.numAuthExceptions += 1
+				throw e
 			}
 			case e: IOException => {
-				log(e)
 				result.stats.numIoExceptions += 1
+				throw e
 			}
-			case e => {
-				log(e)
-			}
+		}
+
+		val urlStore = new UrlStore(context)
+		val sync = new Sync(urlStore, client)
+		try {
+			Log.d(TAG, "got cookie...")
+			val sync = new Sync(new UrlStore(context), client)
+			sync.run()
+		} finally {
+			urlStore.close()
 		}
 	}
 
-	def getCookie(token:String):Cookie = {
+	def getAuthenticatedClient(token:String):HttpClient = {
 		val http_client = new DefaultHttpClient()
 		http_client.getParams().setBooleanParameter(ClientPNames.HANDLE_REDIRECTS, false)
 		
-		var http_get = new HttpGet("https://pagefeed.appspot.com/_ah/login?continue=http://localhost/&auth=" + token)
-		var response = http_client.execute(http_get)
-		val statusCode = response.getStatusLine().getStatusCode()
-		if(statusCode != 302) {
-			// Response should be a redirect
-			throw new AuthenticatorException("expecting redirect (302) - got " + statusCode)
+		try {
+			var http_get = new HttpGet("https://pagefeed.appspot.com/_ah/login?continue=http://localhost/&auth=" + token)
+			var response = http_client.execute(http_get)
+			val statusCode = response.getStatusLine().getStatusCode()
+			if(statusCode != 302) {
+				// Response should be a redirect
+				throw new AuthenticatorException("expecting redirect (302) - got " + statusCode)
+			}
+			val cookie:Option[Cookie] = http_client.getCookieStore().getCookies().toList.find { _.getName == "ACSID" }
+			cookie match {
+				case None => throw new AuthenticatorException("no cookie present in redirect respose")
+				case Some(cookie: Cookie) => cookie
+			}
+			return http_client
+			/*} catch (ClientProtocolException e) {*/
+			/*	// TODO Auto-generated catch block*/
+			/*	e.printStackTrace()*/
+			/*} catch (IOException e) {*/
+			/*	// TODO Auto-generated catch block*/
+			/*	e.printStackTrace()*/
+		} finally {
+			// reset the handle_redirects setting
+			http_client.getParams().setBooleanParameter(ClientPNames.HANDLE_REDIRECTS, true)
 		}
-		val cookie:Option[Cookie] = http_client.getCookieStore().getCookies().toList.find { _.getName == "ACSID" }
-		cookie match {
-			case None => throw new AuthenticatorException("no cookie present in redirect respose")
-			case Some(cookie: Cookie) => cookie
-		}
-		/*} catch (ClientProtocolException e) {*/
-		/*	// TODO Auto-generated catch block*/
-		/*	e.printStackTrace()*/
-		/*} catch (IOException e) {*/
-		/*	// TODO Auto-generated catch block*/
-		/*	e.printStackTrace()*/
 	}
 }

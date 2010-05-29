@@ -2,6 +2,7 @@ package net.gfxmonk.android.pagefeed
  
 import _root_.android.content.Context
 import scala.collection.mutable.Map
+import scala.collection.mutable.Queue
 import java.util.logging.Logger
 import _root_.android.database.Cursor
 import _root_.android.database.sqlite.SQLiteDatabase
@@ -25,6 +26,8 @@ object UrlStore {
 class UrlStore (context: Context) extends
 	SQLiteOpenHelper(context, UrlStore.name, null, UrlStore.version) {
 	import UrlStore._
+
+	var openCursors = new Queue[Cursor]()
 
 	private def db = getWritableDatabase()
 
@@ -56,8 +59,20 @@ class UrlStore (context: Context) extends
 		get(DIRTY + " = 1")
 	}
 
+	override def close() = {
+		super.close()
+		for (cursor <- openCursors ) {
+			if (!cursor.isClosed()) {
+				cursor.close()
+			}
+		}
+		openCursors = new Queue[Cursor]()
+	}
+
 	private def get(cond: String) = {
-		new UrlSet(db.query(table_name, ATTRIBUTES, cond, Array(), null, null, null))
+		val urlSet = new UrlSet(db.query(table_name, ATTRIBUTES, cond, Array(), null, null, null))
+		openCursors.enqueue(urlSet.cursor)
+		urlSet
 	}
 
 	// --- db bookkeeping
@@ -78,21 +93,39 @@ class UrlStore (context: Context) extends
 
 }
 
-class UrlSet(val cursor:Cursor) extends Iterable[Url] {
+class UrlSet(var cursor:Cursor) {
 	import UrlStore._
-	val columnMap = Map[String,Int]()
-	val indexes = ATTRIBUTES.map(attr => columnMap.put(attr, cursor.getColumnIndexOrThrow(attr)))
 
-	override def elements() = {
+	private def elements = {
+		val columnMap = Map[String,Int]()
+		val indexes = ATTRIBUTES.map(attr => columnMap.put(attr, cursor.getColumnIndexOrThrow(attr)))
+		/*ATTRIBUTES.foreach { attr =>*/
+		/*	Util.info("column for attr " + attr + " is " + cursor.getColumnIndexOrThrow(attr))*/
+		/*	Util.info("column map is " + columnMap.get(attr).get)*/
+		/*}*/
+		cursor.moveToFirst()
 		new Iterator[Url] {
 			def hasNext = ! cursor.isAfterLast()
 			def next = {
+				Util.info("cursor is at index: " + cursor.getPosition())
+				Util.info("cursor is after last: " + cursor.isAfterLast())
+				Util.info("got indexes: " + indexes)
 				var url = cursor.getString(columnMap.get(URL).get)
 				var dirty = cursor.getInt(columnMap.get(DIRTY).get) == 1
 				var active = cursor.getInt(columnMap.get(ACTIVE).get) == 1
+				cursor.moveToNext()
 				new Url(url, dirty, active)
 			}
 		}
 	}
 
+	def map[T](mapper:(Url => T)) = toList.map(mapper)
+	def foreach(mapper: (Url => Unit)) = toList.foreach(mapper)
+
+	def toList = {
+		val list = elements.toList
+		cursor.close()
+		cursor = null
+		list
+	}
 }
