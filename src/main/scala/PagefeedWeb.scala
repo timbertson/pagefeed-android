@@ -10,6 +10,8 @@ import _root_.org.apache.http.client.HttpClient
 import _root_.org.apache.http.HttpResponse
 import _root_.org.apache.http.HttpException
 import _root_.org.apache.http.client.entity.UrlEncodedFormEntity
+import _root_.org.apache.http.message.BasicNameValuePair
+import _root_.org.apache.http.NameValuePair
 
 class PagefeedWeb(web: HttpClient) {
 	var auth:Any = null
@@ -20,10 +22,10 @@ class PagefeedWeb(web: HttpClient) {
 	}
 
 	def delete(url:String) = {
-		// TODO: ignore 404 errors
 		try {
 			post(BASE + "page/del/", Map("url" -> url))
 		} catch {
+			// ignore 404s, they just mean the item is already deleted
 			case _:NotFoundException => {}
 		}
 	}
@@ -39,12 +41,12 @@ class PagefeedWeb(web: HttpClient) {
 	}
 
 	private def post(url:String, params:Map[String,String]) = {
+		params ++ "quiet" -> "true"
 		Util.info("POSTing: " + url + " with params = " + params)
-		val httpParams = new BasicHttpParams()
-		for ((k,v) <- params) httpParams.setParameter(k, v)
-		Util.info("url = " + httpParams.getParameter("url"))
+		val paramList = new java.util.ArrayList[NameValuePair]()
+		params.foreach { case (k,v) => paramList.add(new BasicNameValuePair(k,v)) }
 		val post = new HttpPost(url)
-		post.setParams(httpParams)
+		post.setEntity(new UrlEncodedFormEntity(paramList))
 		body(web.execute(post))
 	}
 
@@ -52,7 +54,6 @@ class PagefeedWeb(web: HttpClient) {
 		val entity = result.getEntity()
 		val content = entity.getContent()
 		Util.info("response status = " + result.getStatusLine().getStatusCode())
-		Util.info("response body = " + Source.fromInputStream(content).mkString)
 		val body = Source.fromInputStream(content).mkString
 		result.getStatusLine().getStatusCode() match {
 			case 200 => body

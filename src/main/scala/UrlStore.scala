@@ -15,11 +15,13 @@ import _root_.android.net.Uri
 object UrlStore {
 	val name = "pagefeed"
 	val version = 1
-	val table_name = "url"
+	val tableName = "url"
 	val URL = "url"
 	val DIRTY = "dirty"
 	val ACTIVE = "active"
 	val ID = "_id"
+	val TRUE = 1
+	val FALSE = 0
 	val ATTRIBUTES = Array(UrlStore.ID, UrlStore.URL, UrlStore.ACTIVE, UrlStore.DIRTY)
 }
 
@@ -27,6 +29,7 @@ class UrlStore (context: Context) extends
 	SQLiteOpenHelper(context, UrlStore.name, null, UrlStore.version) {
 	import UrlStore._
 
+	Util.info("UrlStore: created")
 	var openCursors = new Queue[Cursor]()
 
 	private def db = getWritableDatabase()
@@ -35,20 +38,17 @@ class UrlStore (context: Context) extends
 		get(ACTIVE + " = 1")
 	}
 
-	def add(u:Url) = {
+	def add(u:Url):Unit = {
 		val values = new ContentValues()
 		values.put(URL, u.url)
 		values.put(DIRTY, u.dirty)
 		values.put(ACTIVE, u.active)
-		db.insert(table_name, null, values)
+		db.insert(tableName, null, values)
+		Util.info("inserted " + u + " into local DB")
 	}
 
-	def add(u:String) = {
-		val values = new ContentValues()
-		values.put(URL, u)
-		values.put(DIRTY, true)
-		values.put(ACTIVE, true)
-		db.insert(table_name, null, values)
+	def add(u:String):Unit = {
+		add(Url.local(u))
 	}
 
 	def add(u:Uri):Unit = {
@@ -59,18 +59,42 @@ class UrlStore (context: Context) extends
 		get(DIRTY + " = 1")
 	}
 
+	def markClean(item:Url) = {
+		assert(item.active, "a clean deleted item should be purged!")
+		Util.info("marking item as clean:" + item)
+		update(item, DIRTY -> FALSE)
+	}
+
+	def markDeleted(item:Url) = {
+		Util.info("marking item as deleted (locally):" + item)
+		update(item, ACTIVE -> FALSE, DIRTY -> TRUE)
+	}
+
+	def purge(item:Url) = {
+		Util.info("purging item locally: " + item)
+		db.delete(tableName, URL + " = ?", List(item.url).toArray)
+	}
+
+	private def update(item:Url, params:Tuple2[String,Int]*) = {
+		val values = new ContentValues()
+		for ((k,v) <- params) { values.put(k, v) }
+		db.update(tableName, values, URL + " = ?", List(item.url).toArray)
+	}
+
 	override def close() = {
 		super.close()
 		for (cursor <- openCursors ) {
 			if (!cursor.isClosed()) {
+				Util.info("cursor::close()")
 				cursor.close()
 			}
 		}
 		openCursors = new Queue[Cursor]()
+		Util.info("UrlStore::close()")
 	}
 
 	private def get(cond: String) = {
-		val urlSet = new UrlSet(db.query(table_name, ATTRIBUTES, cond, Array(), null, null, null))
+		val urlSet = new UrlSet(db.query(tableName, ATTRIBUTES, cond, Array(), null, null, null))
 		openCursors.enqueue(urlSet.cursor)
 		urlSet
 	}
@@ -107,9 +131,6 @@ class UrlSet(var cursor:Cursor) {
 		new Iterator[Url] {
 			def hasNext = ! cursor.isAfterLast()
 			def next = {
-				Util.info("cursor is at index: " + cursor.getPosition())
-				Util.info("cursor is after last: " + cursor.isAfterLast())
-				Util.info("got indexes: " + indexes)
 				var url = cursor.getString(columnMap.get(URL).get)
 				var dirty = cursor.getInt(columnMap.get(DIRTY).get) == 1
 				var active = cursor.getInt(columnMap.get(ACTIVE).get) == 1

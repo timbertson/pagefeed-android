@@ -13,6 +13,9 @@ log:
 log_more:
 	adb logcat \*:I pagefeed:\*
 
+db:
+	adb shell 'sqlite3 data/data/net.gfxmonk.android.pagefeed/databases/pagefeed ".dump url"'
+
 size=128
 icon:
 	convert ~/Desktop/pagefee-android.png -resize $(size)x -background transparent -gravity center -extent $(size)x$(size)+0+0 +repage ./src/main/res/drawable/app_icon.png

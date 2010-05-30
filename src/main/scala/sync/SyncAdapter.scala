@@ -42,13 +42,10 @@ class SyncAdapter(context: Context, autoInitialize: Boolean)
 		extras: Bundle,
 		authority: String,
 		provider: ContentProviderClient,
-		result: SyncResult) =
+		result: SyncResult):Unit =
 {
 		var client:HttpClient = try {
-			// use the account manager to request the credentials
 			val authToken = accountManager.blockingGetAuthToken(account, AUTHTOKEN_TYPE, true /* notifyAuthFailure */)
-			Log.d(TAG, "\n\n\n\n\n\n\n\nsync woo!")
-			Log.d(TAG, "got token: " + authToken)
 			getAuthenticatedClient(authToken)
 		} catch {
 			case e:ParseException  => {
@@ -68,9 +65,11 @@ class SyncAdapter(context: Context, autoInitialize: Boolean)
 		val urlStore = new UrlStore(context)
 		val sync = new Sync(urlStore, client)
 		try {
-			Log.d(TAG, "got cookie...")
+			Util.info("sync: got cookie...")
 			val sync = new Sync(new UrlStore(context), client)
-			sync.run()
+			val syncResult = sync.run()
+			result.stats.numInserts = syncResult.added.asInstanceOf[Long]
+			result.stats.numDeletes = syncResult.removed.asInstanceOf[Long]
 		} finally {
 			urlStore.close()
 		}
@@ -94,14 +93,8 @@ class SyncAdapter(context: Context, autoInitialize: Boolean)
 				case Some(cookie: Cookie) => cookie
 			}
 			return http_client
-			/*} catch (ClientProtocolException e) {*/
-			/*	// TODO Auto-generated catch block*/
-			/*	e.printStackTrace()*/
-			/*} catch (IOException e) {*/
-			/*	// TODO Auto-generated catch block*/
-			/*	e.printStackTrace()*/
 		} finally {
-			// reset the handle_redirects setting
+			// reset the HANDLE_REDIRECTS setting
 			http_client.getParams().setBooleanParameter(ClientPNames.HANDLE_REDIRECTS, true)
 		}
 	}

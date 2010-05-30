@@ -28,4 +28,12 @@ class MainActivity extends ListActivity {
 		urlStore.close()
 	}
 
+	def isSyncEnabled() = {
+		// something like this:
+		/*val am = AccountManager.get(this)*/
+		/*val accounts = am.getAccountsByType("com.google")*/
+		/*ContentResolver.setIsSyncable(accounts[0], ContactsContract.AUTHORITY, 1)*/
+		/*ContentResolver.setSyncAutomatically(accounts[0], ContactsContract.AUTHORITY, true)*/
+	}
+
 }

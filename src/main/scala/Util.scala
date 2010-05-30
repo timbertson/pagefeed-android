@@ -8,5 +8,4 @@ object Util {
 	def toast(text:String, ctx:Context) = {
 		Toast.makeText(ctx, text, Toast.LENGTH_SHORT).show();
 	}
-
 }
