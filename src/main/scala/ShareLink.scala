@@ -12,11 +12,10 @@ class ShareLink extends Activity {
 		val intent = getIntent
 		val action = intent.getAction
 		val url = intent.getExtras.getString(Intent.EXTRA_TEXT);
-		Util.info("extra: " + url)
+		Util.info("url = " + url)
 		if (url == null || !url.startsWith("http")) {
 			Util.toast("invalid URL", getApplicationContext())
 		} else {
-			Util.toast("url = " + url.toString, getApplicationContext)
 			val shareIntent = new Intent(Intent.ACTION_SEND, Uri.parse(url))
 			shareIntent.setClass(this, classOf[PagefeedService])
 			startService(shareIntent)

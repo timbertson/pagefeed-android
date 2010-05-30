@@ -23,6 +23,11 @@ object UrlStore {
 	val TRUE = 1
 	val FALSE = 0
 	val ATTRIBUTES = Array(UrlStore.ID, UrlStore.URL, UrlStore.ACTIVE, UrlStore.DIRTY)
+	def indexOf(attr:String) = {
+		val index = UrlStore.ATTRIBUTES.indexOf(attr)
+		if(index < 0) { throw new RuntimeException("no such field: " + attr) }
+		index
+	}
 }
 
 class UrlStore (context: Context) extends

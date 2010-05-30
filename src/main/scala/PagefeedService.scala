@@ -24,12 +24,16 @@ class PagefeedService extends Service {
 		val store = new UrlStore(this)
 		try {
 			store.add(uri)
+			Util.toast("URL saved!", getApplicationContext)
+		} catch {
+			case e => Util.toast("Error: " + e, getApplicationContext)
 		} finally {
 			store.close()
 		}
 	}
 
 	private def sync() = {
+		// TODO?
 	}
 
 	private def invalidIntent() = {
