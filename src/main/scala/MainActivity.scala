@@ -21,6 +21,7 @@ class MainActivity extends ListActivity {
 	override def onStart() = {
 		super.onStart()
 		urlStore = new UrlStore(this)
+		var cls = classOf[PagefeedProvider] // ack! stop proguard from stripping this class!
 
 		setContentView(R.layout.url_list);
 		cursor = urlStore.active().cursor

@@ -28,6 +28,11 @@
 		</activity>
 
 		<service android:name="net.gfxmonk.android.pagefeed.PagefeedService" />
+		<provider android:name=".PagefeedProvider"
+			android:authorities="net.gfxmonk.android.pagefeed"
+		/>
+			<!-- android:permission="net.gfxmonk.android.pagefeed.DATA" -->
+
 
 		<activity android:name=".auth.AccountList">
 			<intent-filter>
@@ -35,11 +40,6 @@
 				<category android:name="android.intent.category.LAUNCHER"/>
 			</intent-filter>
 		</activity>
-
-		<provider android:name=".PagefeedProvider"
-			android:authorities="net.gfxmonk.android.pagefeed"
-		/>
-			<!-- android:permission="net.gfxmonk.android.pagefeed.DATA" -->
 
 		<service android:name=".sync.SyncAdapterService" android:exported="true" android:process=":contacts">
 			<intent-filter>
