@@ -13,16 +13,21 @@ import _root_.android.graphics.drawable.ShapeDrawable
 import _root_.android.content.Context
 import _root_.android.database.Cursor
 import _root_.android.widget.ResourceCursorAdapter
+import _root_.android.view.ContextMenu
+import _root_.android.view.MenuItem
+import _root_.android.view.ContextMenu.ContextMenuInfo
+import _root_.android.widget.AdapterView.AdapterContextMenuInfo
  
 class MainActivity extends ListActivity {
 	var urlStore:UrlStore = null
 	var cursor:Cursor = null
+	val DELETE_MENU_ITEM = 1
+	var adapter: SimpleCursorAdapter = null
 
 	override def onStart() = {
 		super.onStart()
 		if(! AccountList.hasEnabledAccount(getApplicationContext())) {
-			val intent = new Intent()
-			intent.setClass(this, classOf[AccountList])
+			val intent = new Intent(this, classOf[AccountList])
 			startActivity(intent)
 		}
 
@@ -31,7 +36,7 @@ class MainActivity extends ListActivity {
 
 		setContentView(R.layout.url_list);
 		cursor = urlStore.active().cursor
-		val adapter = new SimpleCursorAdapter(
+		adapter = new SimpleCursorAdapter(
 			this,
 			R.layout.url_item,
 			cursor,
@@ -53,13 +58,49 @@ class MainActivity extends ListActivity {
 			}
 		})
 
-		setListAdapter(adapter);
+
+		registerForContextMenu(getListView())
+		setListAdapter(adapter)
 	}
 
-	override def onListItemClick(list: ListView, view: View, pos: Int, id: Long) = {
-		cursor.moveToPosition(pos)
+	override def onCreateContextMenu(menu: ContextMenu, v:View, info:ContextMenuInfo) = {
+		super.onCreateContextMenu(menu, v, info);
+		menu.add(0, DELETE_MENU_ITEM, 0, R.string.delete)
+		true
+	}
+
+	override def onContextItemSelected(item: MenuItem):Boolean = {
+		val info = item.getMenuInfo().asInstanceOf[AdapterContextMenuInfo]
+		item.getItemId() match {
+			case DELETE_MENU_ITEM => {
+				deleteItemAt(info.position)
+				true
+			}
+			case _ =>
+				super.onContextItemSelected(item)
+		}
+	}
+
+	private def itemAt(position: Int):String = {
+		cursor.moveToPosition(position)
+		cursor.getString(UrlStore.indexOf(UrlStore.URL))
+	}
+
+	private def deleteItemAt(position: Int) = {
+		Util.info("deleting URL: " + cursor.getString(UrlStore.indexOf(UrlStore.URL)))
+		urlStore.markDeleted(itemAt(position))
+		refresh()
+	}
+
+	private def refresh() = {
+		Util.info("refreshing list view...")
+		cursor.requery()
+		adapter.notifyDataSetChanged()
+	}
+
+	override def onListItemClick(list: ListView, view: View, position: Int, id: Long) = {
+		var url = itemAt(position)
 		Util.info("launching URL: " + cursor.getString(UrlStore.indexOf(UrlStore.URL)))
-		var url = cursor.getString(UrlStore.indexOf(UrlStore.URL))
 		val intent = new Intent(Intent.ACTION_VIEW)
 		intent.setData(Uri.parse(url))
 		startActivity(intent)

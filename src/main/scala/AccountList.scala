@@ -27,19 +27,16 @@ class AccountList extends ListActivity {
 		super.onCreate(savedInstanceState)
 		val accountManager = AccountManager.get(getApplicationContext())
 		accounts = accountManager.getAccountsByType(Contract.ACCOUNT_TYPE)
-		Util.info("got accounts: " + accounts.length)
-		if (accounts.length == 0) {
-			// start the activity anyways - it'll add an account if none is present
-			/*var intent = new Intent(this, classOf[AppInfo])*/
-			/*startActivity(intent)*/
-		} else {
+		setContentView(R.layout.account_list);
+		if (accounts.length > 0) {
 			val names = accounts.map(_.name)
-			this.setListAdapter(new ArrayAdapter[String](this, R.layout.account_list, names))
+			this.setListAdapter(new ArrayAdapter[String](this, R.layout.account_item, names))
 		}
 	}
 
 	override def onListItemClick(l: ListView, v: View, position: Int, id: Long) = {
 		var account = accounts(position)
 		ContentResolver.setIsSyncable(account, Contract.AUTHORITY, 1)
+		finish()
 	}
 }

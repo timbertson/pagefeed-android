@@ -34,7 +34,6 @@
 		/>
 			<!-- android:permission="net.gfxmonk.android.pagefeed.DATA" -->
 
-
 		<activity android:name=".AccountList" android:label="@string/select_account"/>
 
 		<service android:name=".sync.SyncAdapterService" android:exported="true" android:process=":contacts">

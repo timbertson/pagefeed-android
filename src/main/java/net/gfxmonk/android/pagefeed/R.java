@@ -20,12 +20,14 @@ public final class R {
         public static final int url=0x7f060001;
     }
     public static final class layout {
-        public static final int account_list=0x7f030000;
-        public static final int url_item=0x7f030001;
-        public static final int url_list=0x7f030002;
+        public static final int account_item=0x7f030000;
+        public static final int account_list=0x7f030001;
+        public static final int url_item=0x7f030002;
+        public static final int url_list=0x7f030003;
     }
     public static final class string {
         public static final int app_name=0x7f050000;
+        public static final int delete=0x7f050002;
         public static final int select_account=0x7f050001;
     }
     public static final class xml {

@@ -67,12 +67,12 @@ class UrlStore (context: Context) extends
 	def markClean(item:Url) = {
 		assert(item.active, "a clean deleted item should be purged!")
 		Util.info("marking item as clean:" + item)
-		update(item, DIRTY -> FALSE)
+		update(item.url, DIRTY -> FALSE)
 	}
 
-	def markDeleted(item:Url) = {
-		Util.info("marking item as deleted (locally):" + item)
-		update(item, ACTIVE -> FALSE, DIRTY -> TRUE)
+	def markDeleted(url:String) = {
+		Util.info("marking item as deleted (locally):" + url)
+		update(url, ACTIVE -> FALSE, DIRTY -> TRUE)
 	}
 
 	def purge(item:Url) = {
@@ -80,10 +80,10 @@ class UrlStore (context: Context) extends
 		db.delete(tableName, URL + " = ?", List(item.url).toArray)
 	}
 
-	private def update(item:Url, params:Tuple2[String,Int]*) = {
+	private def update(url:String, params:Tuple2[String,Int]*) = {
 		val values = new ContentValues()
 		for ((k,v) <- params) { values.put(k, v) }
-		db.update(tableName, values, URL + " = ?", List(item.url).toArray)
+		db.update(tableName, values, URL + " = ?", List(url).toArray)
 	}
 
 	override def close() = {
