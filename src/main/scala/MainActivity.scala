@@ -20,6 +20,12 @@ class MainActivity extends ListActivity {
 
 	override def onStart() = {
 		super.onStart()
+		if(! AccountList.hasEnabledAccount(getApplicationContext())) {
+			val intent = new Intent()
+			intent.setClass(this, classOf[AccountList])
+			startActivity(intent)
+		}
+
 		urlStore = new UrlStore(this)
 		var cls = classOf[PagefeedProvider] // ack! stop proguard from stripping this class!
 
