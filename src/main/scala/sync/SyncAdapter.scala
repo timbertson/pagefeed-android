@@ -48,17 +48,15 @@ class SyncAdapter(context: Context, autoInitialize: Boolean)
 			val authToken = accountManager.blockingGetAuthToken(account, AUTHTOKEN_TYPE, true /* notifyAuthFailure */)
 			getAuthenticatedClient(authToken)
 		} catch {
-			case e:ParseException  => {
-				result.stats.numParseExceptions += 1
-				throw e
-			}
-			case e:AuthenticatorException => {
-				result.stats.numAuthExceptions += 1
-				throw e
-			}
-			case e: IOException => {
-				result.stats.numIoExceptions += 1
-				throw e
+			case e:Exception => {
+				e.printStackTrace()
+				e match {
+					case e:ParseException  =>        result.stats.numParseExceptions += 1
+					case e:AuthenticatorException => result.stats.numAuthExceptions += 1
+					case e:IOException =>            result.stats.numIoExceptions += 1
+					case _ => throw e
+				}
+				return
 			}
 		}
 

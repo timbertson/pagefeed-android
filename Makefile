@@ -7,6 +7,9 @@ intent:
 emulate:
 	sbt warn ~reinstall-emulator
 
+install:
+	sbt warn ~reinstall-device
+
 log:
 	adb logcat \*:E pagefeed:\*
 
@@ -15,6 +18,9 @@ log_more:
 
 db:
 	adb shell 'sqlite3 data/data/net.gfxmonk.android.pagefeed/databases/pagefeed ".dump url"'
+
+drop_db:
+	adb shell rm /data/data/net.gfxmonk.android.pagefeed/databases/pagefeed
 
 size=128
 icon:

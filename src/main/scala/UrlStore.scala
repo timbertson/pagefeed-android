@@ -10,6 +10,7 @@ import _root_.android.database.sqlite.SQLiteDatabase.CursorFactory
 import _root_.android.database.sqlite.SQLiteOpenHelper
 import _root_.android.content.ContentValues
 import _root_.android.net.Uri
+import _root_.android.database.sqlite.SQLiteConstraintException
 
 
 object UrlStore {
@@ -48,7 +49,11 @@ class UrlStore (context: Context) extends
 		values.put(URL, u.url)
 		values.put(DIRTY, u.dirty)
 		values.put(ACTIVE, u.active)
-		db.insert(tableName, null, values)
+		try {
+			db.insert(tableName, null, values)
+		} catch {
+			case _:SQLiteConstraintException => {} // URL uniqueness - doesn't matter
+		}
 		Util.info("inserted " + u + " into local DB")
 	}
 
@@ -110,7 +115,7 @@ class UrlStore (context: Context) extends
 		Util.info("creating table!")
 		db.execSQL("create table url (" +
 			"_id integer primary key, " +
-			"url text not null, " +
+			"url text unique not null, " +
 			"dirty boolean, " +
 			"active boolean default 1" +
 		");")

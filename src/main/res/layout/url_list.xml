@@ -14,5 +14,9 @@
 		android:layout_height="wrap_content"
 		android:text="no URLs saved"
 		/>
+	<TextView android:id="@+id/syncDisabled"
+		android:layout_width="fill_parent"
+		android:layout_height="wrap_content"
+	/>
 </LinearLayout>
 

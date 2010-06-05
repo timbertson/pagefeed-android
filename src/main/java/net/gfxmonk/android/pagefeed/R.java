@@ -16,6 +16,7 @@ public final class R {
         public static final int ring=0x7f020002;
     }
     public static final class id {
+        public static final int syncDisabled=0x7f060002;
         public static final int sync_state=0x7f060000;
         public static final int url=0x7f060001;
     }
