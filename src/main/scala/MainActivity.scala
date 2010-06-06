@@ -10,6 +10,7 @@ import _root_.android.view.Menu
 import _root_.android.widget.TextView
 import _root_.android.widget.ListView
 import _root_.android.widget.SimpleCursorAdapter
+import _root_.android.widget.SimpleAdapter
 import _root_.android.graphics.drawable.shapes.OvalShape
 import _root_.android.graphics.drawable.ShapeDrawable
 import _root_.android.content.Context
@@ -17,6 +18,7 @@ import _root_.android.database.Cursor
 import _root_.android.widget.ResourceCursorAdapter
 import _root_.android.view.ContextMenu
 import _root_.android.view.MenuItem
+import _root_.android.text.format.DateUtils
 import _root_.android.view.ContextMenu.ContextMenuInfo
 import _root_.android.widget.AdapterView.AdapterContextMenuInfo
  
@@ -25,22 +27,40 @@ class MainActivity extends ListActivity {
 	var cursor:Cursor = null
 	var adapter: SimpleCursorAdapter = null
 	var broadcastReceiver:CallbackReceiver = null
+	var syncDescriptionView:TextView = null
 
 	override def onStart() = {
 		super.onStart()
+		var cls = classOf[PagefeedProvider] // ack! stop proguard from stripping this class!
+
+		startAccountSelectorIfNecessary()
+		urlStore = new UrlStore(this)
+
+		// init views
+		setContentView(R.layout.url_list);
+		syncDescriptionView = findViewById(R.id.last_sync).asInstanceOf[TextView]
+
+		// setup listeners
+		listenForSync()
+		registerForContextMenu(getListView())
+
+		// and the main data source
+		adapter = initAdapter()
+		setListAdapter(adapter)
+	}
+
+	private def startAccountSelectorIfNecessary() = {
 		if (account == null) {
 			val intent = new Intent(this, classOf[AccountList])
 			startActivity(intent)
-		} else {
-			// add "not auto sync" alert
 		}
+	}
 
-		urlStore = new UrlStore(this)
-		var cls = classOf[PagefeedProvider] // ack! stop proguard from stripping this class!
+	private def account = {
+		AccountList.singleEnabledAccount(getApplicationContext())
+	}
 
-		listenForSync()
-
-		setContentView(R.layout.url_list);
+	private def initAdapter() = {
 		cursor = urlStore.active().cursor
 		adapter = new SimpleCursorAdapter(
 			this,
@@ -63,14 +83,25 @@ class MainActivity extends ListActivity {
 				}
 			}
 		})
-
-
-		registerForContextMenu(getListView())
-		setListAdapter(adapter)
+		adapter
 	}
 
-	private def account = {
-		AccountList.singleEnabledAccount(getApplicationContext())
+	private def updateSyncDescription() = {
+		val lastSyncTimeMillis = getSharedPreferences(classOf[MainActivity].getName(), Context.MODE_PRIVATE).getLong(SyncProgress.PREFERENCE_LAST_SYNC, 0)
+		var timeDesc = "unknown"
+		var desc = "last sync: "
+		Util.info("last sync time = " + lastSyncTimeMillis)
+		if(lastSyncTimeMillis > 0) {
+			timeDesc = DateUtils.formatDateTime(this, lastSyncTimeMillis,
+				DateUtils.FORMAT_NO_YEAR |
+				DateUtils.FORMAT_SHOW_TIME |
+				DateUtils.FORMAT_ABBREV_MONTH)
+		}
+		desc += timeDesc
+		if(account == null || !(AccountList.isAutoSync(account))) {
+			desc += " [sync disabled]"
+		}
+		syncDescriptionView.setText(desc)
 	}
 
 	override def onCreateContextMenu(menu: ContextMenu, v:View, info:ContextMenuInfo) = {
@@ -89,6 +120,11 @@ class MainActivity extends ListActivity {
 			case _ =>
 				super.onContextItemSelected(item)
 		}
+	}
+
+	override def onResume() = {
+		super.onResume()
+		updateSyncDescription()
 	}
 
 	override def onCreateOptionsMenu(menu:Menu) = {
@@ -131,17 +167,14 @@ class MainActivity extends ListActivity {
 
 	private def refreshAll() = {
 		refresh()
-		updateSyncInfo()
-	}
-
-	private def updateSyncInfo() = {
-		//TODO
+		updateSyncDescription()
 	}
 
 	private def listenForSync() = {
 		broadcastReceiver = new CallbackReceiver(this.refreshAll _)
 		registerReceiver(broadcastReceiver, new IntentFilter(Contract.ACTION_SYNC_COMPLETE))
 	}
+
 	private def stopListeningForSync() = {
 		unregisterReceiver(broadcastReceiver)
 		broadcastReceiver = null

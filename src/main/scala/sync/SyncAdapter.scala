@@ -45,6 +45,7 @@ class SyncAdapter(context: Context, autoInitialize: Boolean)
 		result: SyncResult):Unit =
 {
 		val syncProgress = new SyncProgress(context)
+		var success = false
 		syncProgress.start()
 		try {
 			var client:HttpClient = try {
@@ -71,11 +72,12 @@ class SyncAdapter(context: Context, autoInitialize: Boolean)
 				val syncResult = sync.run()
 				result.stats.numInserts = syncResult.added.asInstanceOf[Long]
 				result.stats.numDeletes = syncResult.removed.asInstanceOf[Long]
+				success = true
 			} finally {
 				urlStore.close()
 			}
 		} finally {
-			syncProgress.finish()
+			syncProgress.finish(success)
 		}
 	}
 

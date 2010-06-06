@@ -9,7 +9,7 @@ import _root_.android.app.Notification
 
 object SyncProgress {
 	val SYNC_IN_PROGRESS = 1
-
+	val PREFERENCE_LAST_SYNC = "lastSyncDate"
 }
 
 class SyncProgress(ctx:Context) {
@@ -24,9 +24,16 @@ class SyncProgress(ctx:Context) {
 		notificationService.notify(SYNC_IN_PROGRESS, note)
 	}
 
-	def finish() = {
+	def finish(success:Boolean) = {
+		Util.info("sync finished with success = " + success)
 		ctx.sendBroadcast(new Intent(Contract.ACTION_SYNC_COMPLETE))
 		notificationService.cancel(SYNC_IN_PROGRESS)
+		if(success) {
+			val editor = ctx.getSharedPreferences(classOf[MainActivity].getName(), Context.MODE_PRIVATE).edit()
+			editor.putLong(PREFERENCE_LAST_SYNC, System.currentTimeMillis())
+			Util.info("saved pref " + PREFERENCE_LAST_SYNC + " = " + System.currentTimeMillis())
+			editor.commit()
+		}
 	}
 
 	private def notificationService = {

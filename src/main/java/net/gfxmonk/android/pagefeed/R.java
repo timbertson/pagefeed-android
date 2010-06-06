@@ -19,7 +19,7 @@ public final class R {
     }
     public static final class id {
         public static final int delete_item=0x7f070005;
-        public static final int syncDisabled=0x7f070002;
+        public static final int last_sync=0x7f070002;
         public static final int sync_now=0x7f070003;
         public static final int sync_settings=0x7f070004;
         public static final int sync_state=0x7f070000;
