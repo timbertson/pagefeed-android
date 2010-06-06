@@ -44,32 +44,38 @@ class SyncAdapter(context: Context, autoInitialize: Boolean)
 		provider: ContentProviderClient,
 		result: SyncResult):Unit =
 {
-		var client:HttpClient = try {
-			val authToken = accountManager.blockingGetAuthToken(account, AUTHTOKEN_TYPE, true /* notifyAuthFailure */)
-			getAuthenticatedClient(authToken)
-		} catch {
-			case e:Exception => {
-				e.printStackTrace()
-				e match {
-					case e:ParseException  =>        result.stats.numParseExceptions += 1
-					case e:AuthenticatorException => result.stats.numAuthExceptions += 1
-					case e:IOException =>            result.stats.numIoExceptions += 1
-					case _ => throw e
-				}
-				return
-			}
-		}
-
-		val urlStore = new UrlStore(context)
-		val sync = new Sync(urlStore, client)
+		val syncProgress = new SyncProgress(context)
+		syncProgress.start()
 		try {
-			Util.info("sync: got cookie...")
-			val sync = new Sync(new UrlStore(context), client)
-			val syncResult = sync.run()
-			result.stats.numInserts = syncResult.added.asInstanceOf[Long]
-			result.stats.numDeletes = syncResult.removed.asInstanceOf[Long]
+			var client:HttpClient = try {
+				val authToken = accountManager.blockingGetAuthToken(account, AUTHTOKEN_TYPE, true /* notifyAuthFailure */)
+				getAuthenticatedClient(authToken)
+			} catch {
+				case e:Exception => {
+					e.printStackTrace()
+					e match {
+						case e:ParseException  =>        result.stats.numParseExceptions += 1
+						case e:AuthenticatorException => result.stats.numAuthExceptions += 1
+						case e:IOException =>            result.stats.numIoExceptions += 1
+						case _ => throw e
+					}
+					return
+				}
+			}
+
+			val urlStore = new UrlStore(context)
+			val sync = new Sync(urlStore, client)
+			try {
+				Util.info("sync: got cookie...")
+				val sync = new Sync(new UrlStore(context), client)
+				val syncResult = sync.run()
+				result.stats.numInserts = syncResult.added.asInstanceOf[Long]
+				result.stats.numDeletes = syncResult.removed.asInstanceOf[Long]
+			} finally {
+				urlStore.close()
+			}
 		} finally {
-			urlStore.close()
+			syncProgress.finish()
 		}
 	}
 

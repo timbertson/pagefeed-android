@@ -13,10 +13,29 @@ import _root_.android.content.ContentResolver
 import _root_.android.content.Context
 
 object AccountList {
-	def hasEnabledAccount(ctx:Context):Boolean = {
+	def singleEnabledAccount(ctx:Context):Account = {
 		val accountManager = AccountManager.get(ctx)
 		val accounts = accountManager.getAccountsByType(Contract.ACCOUNT_TYPE)
-		accounts.find(ContentResolver.getIsSyncable(_, Contract.AUTHORITY) > 0) != None
+		val syncableAccounts = accounts.filter(isSyncable _)
+		if (syncableAccounts.length == 1) syncableAccounts(0) else null
+	}
+
+	def isAutoSync(account:Account) = ContentResolver.getSyncAutomatically(account, Contract.AUTHORITY)
+	def isSyncable(account:Account) = ContentResolver.getIsSyncable(account, Contract.AUTHORITY) == 1
+
+	def setSync(account:Account, enable:Boolean, ctx:Context) = {
+		ContentResolver.setIsSyncable(account, Contract.AUTHORITY, if(enable) 1 else 0)
+		Util.toast("sync " + (if(enable) "enabled" else "disabled") + " for " + account.name, ctx)
+	}
+
+	def syncNow(account:Account, ctx: Context):Boolean = {
+		if(account == null) {
+			Util.toast("Error: no appropriate account", ctx)
+			false
+		} else {
+			ContentResolver.requestSync(account, Contract.AUTHORITY, new Bundle())
+			true
+		}
 	}
 }
 
@@ -36,7 +55,12 @@ class AccountList extends ListActivity {
 
 	override def onListItemClick(l: ListView, v: View, position: Int, id: Long) = {
 		var account = accounts(position)
-		ContentResolver.setIsSyncable(account, Contract.AUTHORITY, 1)
+		AccountList.setSync(account, true, getApplicationContext())
+		accounts.map { a =>
+			if(a != account) {
+				ContentResolver.setIsSyncable(account, Contract.AUTHORITY, 0)
+			}
+		}
 		finish()
 	}
 }

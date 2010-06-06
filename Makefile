@@ -23,7 +23,22 @@ drop_db:
 	adb shell rm /data/data/net.gfxmonk.android.pagefeed/databases/pagefeed
 
 size=128
+notification_size=48
+notification_inner_size=40
 icon:
-	convert ~/Desktop/pagefee-android.png -resize $(size)x -background transparent -gravity center -extent $(size)x$(size)+0+0 +repage ./src/main/res/drawable/app_icon.png
+	[ ! -f /tmp/pagefeed.png ] || \
+		convert /tmp/pagefeed.png \
+			-resize $(size)x \
+			-background transparent \
+			-gravity center \
+			-extent $(size)x$(size)+0+0 +repage \
+			./src/main/res/drawable/app_icon.png
+	[ ! -f /tmp/pagefeed-notification.png ] || \
+		convert /tmp/pagefeed-notification.png -colorspace Gray \
+			-resize x$(notification_inner_size) \
+			-background transparent \
+			-gravity center \
+			-extent $(notification_size)x$(notification_size)+0+0 +repage \
+			./src/main/res/drawable/notification.png
 
 .PHONY: arrangement intent icon log log_more

@@ -2,5 +2,5 @@
 <resources>
 	<string name="app_name">PageFeed</string>
 	<string name="select_account">Select a pagefeed account</string>
-	<string name="delete">delete</string>
+	<string name="sync_running">Pagefeed syncing...</string>
 </resources>

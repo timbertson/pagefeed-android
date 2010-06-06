@@ -2,9 +2,11 @@ package net.gfxmonk.android.pagefeed
  
 import _root_.android.app.ListActivity
 import _root_.android.content.Intent
+import _root_.android.content.IntentFilter
 import _root_.android.net.Uri
 import _root_.android.os.Bundle
 import _root_.android.view.View
+import _root_.android.view.Menu
 import _root_.android.widget.TextView
 import _root_.android.widget.ListView
 import _root_.android.widget.SimpleCursorAdapter
@@ -21,18 +23,22 @@ import _root_.android.widget.AdapterView.AdapterContextMenuInfo
 class MainActivity extends ListActivity {
 	var urlStore:UrlStore = null
 	var cursor:Cursor = null
-	val DELETE_MENU_ITEM = 1
 	var adapter: SimpleCursorAdapter = null
+	var broadcastReceiver:CallbackReceiver = null
 
 	override def onStart() = {
 		super.onStart()
-		if(! AccountList.hasEnabledAccount(getApplicationContext())) {
+		if (account == null) {
 			val intent = new Intent(this, classOf[AccountList])
 			startActivity(intent)
+		} else {
+			// add "not auto sync" alert
 		}
 
 		urlStore = new UrlStore(this)
 		var cls = classOf[PagefeedProvider] // ack! stop proguard from stripping this class!
+
+		listenForSync()
 
 		setContentView(R.layout.url_list);
 		cursor = urlStore.active().cursor
@@ -63,17 +69,42 @@ class MainActivity extends ListActivity {
 		setListAdapter(adapter)
 	}
 
+	private def account = {
+		AccountList.singleEnabledAccount(getApplicationContext())
+	}
+
 	override def onCreateContextMenu(menu: ContextMenu, v:View, info:ContextMenuInfo) = {
 		super.onCreateContextMenu(menu, v, info);
-		menu.add(0, DELETE_MENU_ITEM, 0, R.string.delete)
+		getMenuInflater().inflate(R.menu.url_context_menu, menu)
 		true
 	}
 
 	override def onContextItemSelected(item: MenuItem):Boolean = {
 		val info = item.getMenuInfo().asInstanceOf[AdapterContextMenuInfo]
 		item.getItemId() match {
-			case DELETE_MENU_ITEM => {
+			case R.id.delete_item => {
 				deleteItemAt(info.position)
+				true
+			}
+			case _ =>
+				super.onContextItemSelected(item)
+		}
+	}
+
+	override def onCreateOptionsMenu(menu:Menu) = {
+		getMenuInflater().inflate(R.menu.main_menu, menu)
+		true
+	}
+
+	override def onOptionsItemSelected(item:MenuItem):Boolean = {
+		val info = item.getMenuInfo().asInstanceOf[AdapterContextMenuInfo]
+		item.getItemId() match {
+			case R.id.sync_now => {
+				AccountList.syncNow(account, getApplicationContext())
+				true
+			}
+			case R.id.sync_settings => {
+				startActivity(new Intent().setClassName("com.android.providers.subscribedfeeds", "com.android.settings.ManageAccountsSettings"))
 				true
 			}
 			case _ =>
@@ -98,6 +129,24 @@ class MainActivity extends ListActivity {
 		adapter.notifyDataSetChanged()
 	}
 
+	private def refreshAll() = {
+		refresh()
+		updateSyncInfo()
+	}
+
+	private def updateSyncInfo() = {
+		//TODO
+	}
+
+	private def listenForSync() = {
+		broadcastReceiver = new CallbackReceiver(this.refreshAll _)
+		registerReceiver(broadcastReceiver, new IntentFilter(Contract.ACTION_SYNC_COMPLETE))
+	}
+	private def stopListeningForSync() = {
+		unregisterReceiver(broadcastReceiver)
+		broadcastReceiver = null
+	}
+
 	override def onListItemClick(list: ListView, view: View, position: Int, id: Long) = {
 		var url = itemAt(position)
 		Util.info("launching URL: " + cursor.getString(UrlStore.indexOf(UrlStore.URL)))
@@ -108,16 +157,8 @@ class MainActivity extends ListActivity {
 
 	override def onStop() = {
 		super.onStop()
+		stopListeningForSync()
 		urlStore.close()
 	}
-
-	def isSyncEnabled() = {
-		// TODO: something like this, and let the user know if it's not enabled
-		// also, get the last sync state perhaps?
-		/*val am = AccountManager.get(this)*/
-		/*val accounts = am.getAccountsByType("com.google")*/
-		/*ContentResolver.setIsSyncable(accounts[0], ContactsContract.AUTHORITY, 1)*/
-		/*ContentResolver.setSyncAutomatically(accounts[0], ContactsContract.AUTHORITY, true)*/
-	}
-
 }
+
