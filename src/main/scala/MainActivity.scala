@@ -31,7 +31,6 @@ class MainActivity extends ListActivity {
 
 	override def onStart() = {
 		super.onStart()
-		var cls = classOf[PagefeedProvider] // ack! stop proguard from stripping this class!
 
 		startAccountSelectorIfNecessary()
 		urlStore = new UrlStore(this)
