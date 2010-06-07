@@ -12,6 +12,8 @@ import _root_.org.apache.http.HttpException
 import _root_.org.apache.http.client.entity.UrlEncodedFormEntity
 import _root_.org.apache.http.message.BasicNameValuePair
 import _root_.org.apache.http.NameValuePair
+import _root_.org.json.JSONTokener
+import _root_.org.json.JSONArray
 
 class PagefeedWeb(web: HttpClient) {
 	var auth:Any = null
@@ -30,9 +32,16 @@ class PagefeedWeb(web: HttpClient) {
 		}
 	}
 
-	def list():List[String] = {
-		var response = get(BASE + "page/list/")
-		response.lines.map(_.trim).filter(_.length > 0).toList
+	def listDocumentsSince(lastDoctime:Long):List[Url] = {
+		var response = get(BASE + "page/list/?since=" + lastDoctime.toString)
+		val array = new JSONTokener(response).nextValue().asInstanceOf[JSONArray]
+		(0 until array.length).map { i =>
+			val obj = array.getJSONObject(i)
+			val timestamp = obj.getLong("date")
+			val url = obj.getString("url")
+			/*val title = obj.getString("title")*/
+			Url.remote(url, timestamp)
+		}.toList
 	}
 
 	private def get(url:String) = {
@@ -43,11 +52,15 @@ class PagefeedWeb(web: HttpClient) {
 	private def post(url:String, params:Map[String,String]) = {
 		params ++ "quiet" -> "true"
 		Util.info("POSTing: " + url + " with params = " + params)
+		val post = new HttpPost(url)
+		post.setEntity(makeParams(params))
+		body(web.execute(post))
+	}
+
+	private def makeParams(params:Map[String,String]) = {
 		val paramList = new java.util.ArrayList[NameValuePair]()
 		params.foreach { case (k,v) => paramList.add(new BasicNameValuePair(k,v)) }
-		val post = new HttpPost(url)
-		post.setEntity(new UrlEncodedFormEntity(paramList))
-		body(web.execute(post))
+		new UrlEncodedFormEntity(paramList)
 	}
 
 	private def body(result: HttpResponse):String = {

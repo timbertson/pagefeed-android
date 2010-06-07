@@ -31,6 +31,7 @@ class MainActivity extends ListActivity {
 
 	override def onStart() = {
 		super.onStart()
+		val cls = classOf[PagefeedProvider]
 
 		startAccountSelectorIfNecessary()
 		urlStore = new UrlStore(this)
@@ -86,7 +87,7 @@ class MainActivity extends ListActivity {
 	}
 
 	private def updateSyncDescription() = {
-		val lastSyncTimeMillis = getSharedPreferences(classOf[MainActivity].getName(), Context.MODE_PRIVATE).getLong(SyncProgress.PREFERENCE_LAST_SYNC, 0)
+		val lastSyncTimeMillis = Util.prefLong(getApplicationContext(), SyncProgress.PREFERENCE_LAST_SYNC, 0)
 		var timeDesc = "unknown"
 		var desc = "last sync: "
 		Util.info("last sync time = " + lastSyncTimeMillis)

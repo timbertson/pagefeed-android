@@ -118,6 +118,7 @@ class UrlStore (context: Context) extends
 			"url text unique not null, " +
 			"dirty boolean, " +
 			"active boolean default 1" +
+			"date integer default 0" +
 		");")
 	}
 
@@ -145,7 +146,7 @@ class UrlSet(var cursor:Cursor) {
 				var dirty = cursor.getInt(columnMap.get(DIRTY).get) == 1
 				var active = cursor.getInt(columnMap.get(ACTIVE).get) == 1
 				cursor.moveToNext()
-				new Url(url, dirty, active)
+				new Url(url, dirty, active, 0)
 			}
 		}
 	}

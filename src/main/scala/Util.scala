@@ -8,4 +8,10 @@ object Util {
 	def toast(text:String, ctx:Context) = {
 		Toast.makeText(ctx, text, Toast.LENGTH_SHORT).show();
 	}
+	def prefLong(ctx:Context, key:String, default:Long) = {
+		ctx.getSharedPreferences(
+			classOf[MainActivity].getName(),
+			Context.MODE_PRIVATE
+		).getLong(key, default)
+	}
 }

@@ -10,6 +10,7 @@ import _root_.android.app.Notification
 object SyncProgress {
 	val SYNC_IN_PROGRESS = 1
 	val PREFERENCE_LAST_SYNC = "lastSyncDate"
+	val PREFERENCE_LAST_DOCTIME = "latestServerDoctime"
 }
 
 class SyncProgress(ctx:Context) {

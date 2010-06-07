@@ -4,41 +4,52 @@ import _root_.android.util.Log
 
 import _root_.org.apache.http.client.HttpClient
 
-case class SyncSummary(added:Int, removed:Int)
+case class SyncSummary(var added:Int, var removed:Int, latestDocTime:Long)
 
 class Sync (store: UrlStore, web: HttpClient) {
 
 	val pagefeed = new PagefeedWeb(web)
-	def run():SyncSummary = {
-		processRemoteChanges()
-		processLocalChanges()
+	def run(sinceTimestamp:Long):SyncSummary = {
+		val newTimestamp = processRemoteChanges(sinceTimestamp)
+		val summary = new SyncSummary(0, 0, newTimestamp)
+		processLocalChanges(summary)
+		summary
 	}
 
-	private def processRemoteChanges() = {
-		val remoteUrls = pagefeed.list().toList
+	private def maxTimestamp(l:List[Long]):Long = {
+		var max:Long = 0
+		for(i <- l) {
+			if (i > max) {
+				max = i
+			}
+		}
+		max
+	}
+
+	private def processRemoteChanges(sinceTimestamp: Long):Long = {
+		val remoteUrls = pagefeed.listDocumentsSince(sinceTimestamp).toList
 		Log.d("pagefeed", "urls are: " + remoteUrls.mkString(", "))
-		val localUrls = store.active().map(_.url).toList
+		val localUrls = store.active().toList
+		val latestTime = maxTimestamp(localUrls.map(_.timestamp))
 		for (newRemoteUrl <- (remoteUrls -- localUrls)) {
 			Util.info("adding URL (locally): " + newRemoteUrl)
 			addItemLocally(newRemoteUrl)
 		}
+		latestTime
 	}
 
-	private def processLocalChanges() = {
-		var added = 0
-		var removed = 0
+	private def processLocalChanges(summary:SyncSummary) = {
 		store.dirty().foreach { item =>
 			if(item.active) {
 				Util.info("adding URL (remotely): " + item.url)
 				addItemRemotely(item)
-				added += 1
+				summary.added += 1
 			} else {
 				Util.info("removing URL (remotely): " + item.url)
 				removeItemRemotely(item)
-				removed += 1
+				summary.removed += 1
 			}
 		}
-		new SyncSummary(added, removed)
 	}
 
 	private def removeItemRemotely(item: Url) = {
@@ -51,7 +62,7 @@ class Sync (store: UrlStore, web: HttpClient) {
 		store.markClean(item)
 	}
 
-	private def addItemLocally(url: String) = {
-		store.add(Url.remote(url))
+	private def addItemLocally(url: Url) = {
+		store.add(url)
 	}
 }
