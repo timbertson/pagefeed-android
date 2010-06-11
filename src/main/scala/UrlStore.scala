@@ -37,8 +37,12 @@ class UrlStore (context: Context) extends
 
 	Util.info("UrlStore: created")
 	var openCursors = new Queue[Cursor]()
+	var _db:SQLiteDatabase = null
 
-	private def db = getWritableDatabase()
+	private def db = {
+		_db = getWritableDatabase()
+		_db
+	}
 
 	def active() = {
 		get(ACTIVE + " = 1")
@@ -100,6 +104,9 @@ class UrlStore (context: Context) extends
 			}
 		}
 		openCursors = new Queue[Cursor]()
+		if(_db != null) {
+			_db.close()
+		}
 		Util.info("UrlStore::close()")
 	}
 
@@ -134,10 +141,6 @@ class UrlSet(var cursor:Cursor) {
 	private def elements = {
 		val columnMap = Map[String,Int]()
 		val indexes = ATTRIBUTES.map(attr => columnMap.put(attr, cursor.getColumnIndexOrThrow(attr)))
-		/*ATTRIBUTES.foreach { attr =>*/
-		/*	Util.info("column for attr " + attr + " is " + cursor.getColumnIndexOrThrow(attr))*/
-		/*	Util.info("column map is " + columnMap.get(attr).get)*/
-		/*}*/
 		cursor.moveToFirst()
 		new Iterator[Url] {
 			def hasNext = ! cursor.isAfterLast()

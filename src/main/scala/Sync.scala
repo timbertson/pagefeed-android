@@ -4,14 +4,14 @@ import _root_.android.util.Log
 
 import _root_.org.apache.http.client.HttpClient
 
-case class SyncSummary(var added:Int, var removed:Int, latestDocTime:Long)
+case class SyncSummary(var added:Int, var removed:Int, var latestDocTime:Long)
 
 class Sync (store: UrlStore, web: HttpClient) {
 
 	val pagefeed = new PagefeedWeb(web)
 	def run(sinceTimestamp:Long):SyncSummary = {
-		val newTimestamp = processRemoteChanges(sinceTimestamp)
-		val summary = new SyncSummary(0, 0, newTimestamp)
+		val summary = new SyncSummary(0, 0, sinceTimestamp)
+		processRemoteChanges(summary)
 		processLocalChanges(summary)
 		summary
 	}
@@ -26,16 +26,22 @@ class Sync (store: UrlStore, web: HttpClient) {
 		max
 	}
 
-	private def processRemoteChanges(sinceTimestamp: Long):Long = {
-		val remoteUrls = pagefeed.listDocumentsSince(sinceTimestamp).toList
+	private def processRemoteChanges(summary:SyncSummary):Unit = {
+		def getUrl(u:Url) = u.url
+		val remoteUrls = pagefeed.listDocumentsSince(summary.latestDocTime).toList
 		Log.d("pagefeed", "urls are: " + remoteUrls.mkString(", "))
-		val localUrls = store.active().toList
-		val latestTime = maxTimestamp(localUrls.map(_.timestamp))
-		for (newRemoteUrl <- (remoteUrls -- localUrls)) {
-			Util.info("adding URL (locally): " + newRemoteUrl)
-			addItemLocally(newRemoteUrl)
+		val localUrlObjects = store.active().toList
+		val localUrls = localUrlObjects.map(_.url)
+		for (remoteUrl <- remoteUrls) {
+			if(!localUrls.contains(remoteUrl.url)) {
+				Util.info("adding URL (locally): " + remoteUrl)
+				addItemLocally(remoteUrl)
+				summary.added += 1
+			}
+			if(remoteUrl.timestamp > summary.latestDocTime) {
+				summary.latestDocTime = remoteUrl.timestamp
+			}
 		}
-		latestTime
 	}
 
 	private def processLocalChanges(summary:SyncSummary) = {

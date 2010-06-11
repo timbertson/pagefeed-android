@@ -22,6 +22,9 @@ db:
 drop_db:
 	adb shell rm /data/data/net.gfxmonk.android.pagefeed/databases/pagefeed
 
+release:
+	sbt sign-release
+
 size=128
 notification_size=48
 notification_inner_size=40

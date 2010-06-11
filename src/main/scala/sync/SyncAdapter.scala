@@ -58,19 +58,19 @@ class SyncAdapter(context: Context, autoInitialize: Boolean)
 				case e:Exception => {
 					e.printStackTrace()
 					e match {
-						case e:ParseException  =>        result.stats.numParseExceptions += 1
+						case e:ParseException  => result.stats.numParseExceptions += 1
 						case e:AuthenticatorException => {
 							if (alreadyFailed || authToken == null) {
 								result.stats.numAuthExceptions += 1
 							} else {
 								// retry sync (at most once)
 								alreadyFailed = true
-								accountManager.invalidateAuthToken(AUTHTOKEN_TYPE, authToken)
+								accountManager.invalidateAuthToken(account.`type`, authToken)
 								Util.info("invalidated auth token")
 								onPerformSync(account, extras, authority, provider, result)
 							}
 						}
-						case e:IOException =>            result.stats.numIoExceptions += 1
+						case e:IOException => result.stats.numIoExceptions += 1
 						case _ => throw e
 					}
 					return
@@ -86,6 +86,7 @@ class SyncAdapter(context: Context, autoInitialize: Boolean)
 				val syncResult = sync.run(lastTimestamp)
 				result.stats.numInserts = syncResult.added.asInstanceOf[Long]
 				result.stats.numDeletes = syncResult.removed.asInstanceOf[Long]
+				Util.info("sync result is:" + syncResult)
 				if(syncResult.latestDocTime > lastTimestamp) {
 					updateTimestamp(context, syncResult.latestDocTime)
 				}
