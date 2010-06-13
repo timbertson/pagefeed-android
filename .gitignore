@@ -2,7 +2,8 @@
 /tests
 lib_managed/
 project/boot/
-project/build/
 project/plugins/project/
 project/plugins/target/
 project/plugins/src_managed/
+project/build/target
+market
