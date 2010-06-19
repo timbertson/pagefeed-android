@@ -65,8 +65,9 @@ class SyncAdapter(context: Context, autoInitialize: Boolean)
 							} else {
 								// retry sync (at most once)
 								alreadyFailed = true
+								Util.info("invalidating auth token")
 								accountManager.invalidateAuthToken(account.`type`, authToken)
-								Util.info("invalidated auth token")
+								Util.info("retrying sync")
 								onPerformSync(account, extras, authority, provider, result)
 							}
 						}
@@ -126,9 +127,15 @@ class SyncAdapter(context: Context, autoInitialize: Boolean)
 			throw new AuthenticatorException("expecting redirect (302) - got " + statusCode + ". body:\n" +
 			body)
 		}
-		val cookie:Option[Cookie] = http_client.getCookieStore().getCookies().toList.find { _.getName == "ACSID" }
+		val cookies = http_client.getCookieStore().getCookies().toList
+		val cookie = cookies.find(_.getName.endsWith("CSID"))
 		cookie match {
-			case None => throw new AuthenticatorException("no cookie present in redirect respose")
+			case None => throw new AuthenticatorException(
+					"no cookie present in redirect respose. cookies are:" +
+					cookies.mkString("|") +
+					" and response location is: " +
+					response.getFirstHeader("Location")
+				)
 			case Some(cookie: Cookie) => cookie
 		}
 		http_client.getParams().setBooleanParameter(ClientPNames.HANDLE_REDIRECTS, true)
