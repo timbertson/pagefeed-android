@@ -61,6 +61,7 @@ class SyncAdapter(context: Context, autoInitialize: Boolean)
 						case e:ParseException  => result.stats.numParseExceptions += 1
 						case e:AuthenticatorException => {
 							if (alreadyFailed || authToken == null) {
+								Util.toast("Pagefeed: Authentication error!", context)
 								result.stats.numAuthExceptions += 1
 							} else {
 								// retry sync (at most once)
@@ -110,8 +111,8 @@ class SyncAdapter(context: Context, autoInitialize: Boolean)
 	def getAuthenticatedClient(token:String):HttpClient = {
 		val http_client = new DefaultHttpClient()
 		http_client.getParams().setBooleanParameter(ClientPNames.HANDLE_REDIRECTS, false)
-		
-		var http_get = new HttpGet("https://pagefeed.appspot.com/_ah/login?continue=http://localhost/&auth=" + token)
+		val authCookieNames = Set("ACSID","SACSID")
+		var http_get = new HttpGet(PagefeedWeb.BASE + "_ah/login?continue=http://localhost/&auth=" + token)
 		var response = http_client.execute(http_get)
 		val statusCode = response.getStatusLine().getStatusCode()
 		if(statusCode != 302) {
@@ -122,21 +123,21 @@ class SyncAdapter(context: Context, autoInitialize: Boolean)
 				val content = entity.getContent()
 				body = Source.fromInputStream(content).mkString
 			} catch {
-				case e:Exception => {} // oh well
+				case e:Exception => {} // no big deal
 			}
 			throw new AuthenticatorException("expecting redirect (302) - got " + statusCode + ". body:\n" +
 			body)
 		}
 		val cookies = http_client.getCookieStore().getCookies().toList
-		val cookie = cookies.find(_.getName.endsWith("CSID"))
-		cookie match {
-			case None => throw new AuthenticatorException(
+		var cookie = cookies.find { cookie:Cookie => authCookieNames.contains(cookie.getName()) }
+
+		if(cookie == None) {
+			throw new AuthenticatorException(
 					"no cookie present in redirect respose. cookies are:" +
 					cookies.mkString("|") +
 					" and response location is: " +
 					response.getFirstHeader("Location")
 				)
-			case Some(cookie: Cookie) => cookie
 		}
 		http_client.getParams().setBooleanParameter(ClientPNames.HANDLE_REDIRECTS, true)
 		return http_client

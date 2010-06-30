@@ -15,9 +15,13 @@ import _root_.org.apache.http.NameValuePair
 import _root_.org.json.JSONTokener
 import _root_.org.json.JSONArray
 
+object PagefeedWeb {
+	val BASE = "https://pagefeed.appspot.com/"
+}
+
 class PagefeedWeb(web: HttpClient) {
 	var auth:Any = null
-	val BASE = "http://pagefeed.appspot.com/"
+	import PagefeedWeb._
 
 	def add(url:String) = {
 		post(BASE + "page/", Map("url" -> url))
@@ -34,14 +38,18 @@ class PagefeedWeb(web: HttpClient) {
 
 	def listDocumentsSince(lastDoctime:Long):List[Url] = {
 		var response = get(BASE + "page/list/?since=" + lastDoctime.toString)
-		val array = new JSONTokener(response).nextValue().asInstanceOf[JSONArray]
-		(0 until array.length).map { i =>
-			val obj = array.getJSONObject(i)
-			val timestamp = obj.getLong("date")
-			val url = obj.getString("url")
-			/*val title = obj.getString("title")*/
-			Url.remote(url, timestamp)
-		}.toList
+		try {
+			val array = new JSONTokener(response).nextValue().asInstanceOf[JSONArray]
+			(0 until array.length).map { i =>
+				val obj = array.getJSONObject(i)
+				val timestamp = obj.getLong("date")
+				val url = obj.getString("url")
+				/*val title = obj.getString("title")*/
+				Url.remote(url, timestamp)
+			}.toList
+		} catch {
+			case e:ClassCastException => throw new ParseException(response, e)
+		}
 	}
 
 	private def get(url:String) = {
@@ -76,6 +84,6 @@ class PagefeedWeb(web: HttpClient) {
 	}
 }
 
-class NotFoundException extends HttpException {
-}
+class NotFoundException extends HttpException {}
+class ParseException(msg:String, cause:Throwable) extends RuntimeException(msg, cause) {}
 
