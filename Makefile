@@ -24,6 +24,8 @@ drop_db:
 
 release:
 	sbt sign-release
+	find target -name '*.apk' -mtime 0
+
 
 size=128
 notification_size=48
