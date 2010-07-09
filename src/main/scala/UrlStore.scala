@@ -15,15 +15,16 @@ import _root_.android.database.sqlite.SQLiteConstraintException
 
 object UrlStore {
 	val name = "pagefeed"
-	val version = 1
+	val version = 2
 	val tableName = "url"
 	val URL = "url"
 	val DIRTY = "dirty"
 	val ACTIVE = "active"
+	val TITLE= "title"
 	val ID = "_id"
 	val TRUE = 1
 	val FALSE = 0
-	val ATTRIBUTES = Array(UrlStore.ID, UrlStore.URL, UrlStore.ACTIVE, UrlStore.DIRTY)
+	val ATTRIBUTES = Array(UrlStore.ID, UrlStore.URL, UrlStore.ACTIVE, UrlStore.DIRTY, UrlStore.TITLE)
 	def indexOf(attr:String) = {
 		val index = UrlStore.ATTRIBUTES.indexOf(attr)
 		if(index < 0) { throw new RuntimeException("no such field: " + attr) }
@@ -89,9 +90,20 @@ class UrlStore (context: Context) extends
 		db.delete(tableName, URL + " = ?", List(item.url).toArray)
 	}
 
-	private def update(url:String, params:Tuple2[String,Int]*) = {
+	def update(u:Url) {
+		// NOTE: only updates what can change (so far).
+		update(u.url, TITLE -> u.title)
+	}
+
+	private def update(url:String, params:Tuple2[String,Any]*) = {
 		val values = new ContentValues()
-		for ((k,v) <- params) { values.put(k, v) }
+		for ((k,v) <- params) {
+			v match {
+				case v:String => values.put(k, v)
+				case v:Int => values.put(k, v)
+				case v => throw new RuntimeException("invalid data type!" + v)
+			}
+		}
 		db.update(tableName, values, URL + " = ?", List(url).toArray)
 	}
 
@@ -126,11 +138,18 @@ class UrlStore (context: Context) extends
 			"dirty boolean, " +
 			"active boolean default 1" +
 			"date integer default 0" +
+			"title text default 0" +
 		");")
 	}
 
 	override def onUpgrade(db:SQLiteDatabase, old_version:Int, new_version:Int) = {
-		// noop (yet)
+		val transitions = Map(
+			2 -> "alter table url add column title text default '';"
+		)
+		for (i <- (old_version until new_version).map(_+1)) {
+			Util.info("DB::Migrate[" + old_version + "->" + i + "] " + transitions(i))
+			db.execSQL(transitions(i))
+		}
 	}
 
 }
@@ -148,8 +167,9 @@ class UrlSet(var cursor:Cursor) {
 				var url = cursor.getString(columnMap.get(URL).get)
 				var dirty = cursor.getInt(columnMap.get(DIRTY).get) == 1
 				var active = cursor.getInt(columnMap.get(ACTIVE).get) == 1
+				var title = cursor.getString(columnMap.get(TITLE).get)
 				cursor.moveToNext()
-				new Url(url, dirty, active, 0)
+				new Url(url, title, dirty, active, 0)
 			}
 		}
 	}

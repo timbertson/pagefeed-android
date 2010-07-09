@@ -44,8 +44,8 @@ class PagefeedWeb(web: HttpClient) {
 				val obj = array.getJSONObject(i)
 				val timestamp = obj.getLong("date")
 				val url = obj.getString("url")
-				/*val title = obj.getString("title")*/
-				Url.remote(url, timestamp)
+				val title = obj.getString("title")
+				Url.remote(url, timestamp, title)
 			}.toList
 		} catch {
 			case e:ClassCastException => throw new ParseException(response, e)

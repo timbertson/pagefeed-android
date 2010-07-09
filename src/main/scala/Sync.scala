@@ -27,21 +27,29 @@ class Sync (store: UrlStore, web: HttpClient) {
 	}
 
 	private def processRemoteChanges(summary:SyncSummary):Unit = {
-		def getUrl(u:Url) = u.url
-		val remoteUrls = pagefeed.documents().toList
-		Log.d("pagefeed", "urls are: " + remoteUrls.mkString(", "))
+		val remoteUrlObjects:List[Url] = pagefeed.documents().toList
+		val remoteUrls = remoteUrlObjects.map(_.url)
+		Log.d("pagefeed", "remote urls are: " + remoteUrlObjects.mkString(", "))
 		val localUrlObjects = store.active().toList
-		val localUrls = localUrlObjects.map(_.url)
-		for (remoteUrl <- remoteUrls) {
-			if(!localUrls.contains(remoteUrl.url)) {
-				Util.info("adding URL (locally): " + remoteUrl)
-				addItemLocally(remoteUrl)
-				summary.added += 1
+		Log.d("pagefeed", "local urls are: " + localUrlObjects.mkString(", "))
+		val localUrlMap = Map[String,Url]((localUrlObjects.map(u => u.url -> u)):_*)
+
+		for (remoteUrl <- remoteUrlObjects) {
+			localUrlMap.get(remoteUrl.url) match {
+				case None => {
+					addItemLocally(remoteUrl)
+					summary.added += 1
+				}
+				case Some(localUrl:Url) => {
+					updateItem(localUrl, remoteUrl)
+				}
 			}
+
 			if(remoteUrl.timestamp > summary.latestDocTime) {
 				summary.latestDocTime = remoteUrl.timestamp
 			}
 		}
+
 		for(localUrl <- localUrlObjects) {
 			if ((!localUrl.dirty) && (!remoteUrls.contains(localUrl.url))) {
 				Util.info("removing URL (locally): " + localUrl)
@@ -75,9 +83,18 @@ class Sync (store: UrlStore, web: HttpClient) {
 	}
 
 	private def addItemLocally(url: Url) = {
+		Util.info("adding URL (locally): " + url)
 		store.add(url)
 	}
 	private def removeItemLocally(url: Url) = {
 		store.purge(url)
+	}
+
+	private def updateItem(local: Url, remote: Url):Unit = {
+		if(local.title == remote.title) {
+			return
+		}
+		local.title = remote.title
+		store.update(local)
 	}
 }
