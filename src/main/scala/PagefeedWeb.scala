@@ -23,8 +23,16 @@ class PagefeedWeb(web: HttpClient) {
 	var auth:Any = null
 	import PagefeedWeb._
 
-	def add(url:String) = {
-		post(BASE + "page/", Map("url" -> url))
+	def add(url:String):Option[Url] = {
+		val response = post(BASE + "page/", Map("url" -> url))
+		try {
+			parse(response).firstOption
+		} catch {
+			case e:ParseException => {
+				Util.info("after ADDING item remotely, failed to parse JSON: " + response)
+				return None
+			}
+		}
 	}
 
 	def delete(url:String) = {
@@ -37,9 +45,13 @@ class PagefeedWeb(web: HttpClient) {
 	}
 
 	def documents():List[Url] = {
-		var response = get(BASE + "page/list/")
+		val response = get(BASE + "page/list/")
+		parse(response)
+	}
+
+	def parse(body:String):List[Url] = {
 		try {
-			val array = new JSONTokener(response).nextValue().asInstanceOf[JSONArray]
+			val array = new JSONTokener(body).nextValue().asInstanceOf[JSONArray]
 			(0 until array.length).map { i =>
 				val obj = array.getJSONObject(i)
 				val timestamp = obj.getLong("date")
@@ -48,7 +60,7 @@ class PagefeedWeb(web: HttpClient) {
 				Url.remote(url, timestamp, title)
 			}.toList
 		} catch {
-			case e:ClassCastException => throw new ParseException(response, e)
+			case e:ClassCastException => throw new ParseException(body, e)
 		}
 	}
 
@@ -57,7 +69,8 @@ class PagefeedWeb(web: HttpClient) {
 		body(web.execute(new HttpGet(url)))
 	}
 
-	private def post(url:String, params:Map[String,String]) = {
+	private def post(url:String, params:Map[String,String]):String = {
+		params ++ "json" -> "true"
 		params ++ "quiet" -> "true"
 		Util.info("POSTing: " + url + " with params = " + params)
 		val post = new HttpPost(url)

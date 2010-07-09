@@ -52,7 +52,6 @@ class Sync (store: UrlStore, web: HttpClient) {
 
 		for(localUrl <- localUrlObjects) {
 			if ((!localUrl.dirty) && (!remoteUrls.contains(localUrl.url))) {
-				Util.info("removing URL (locally): " + localUrl)
 				removeItemLocally(localUrl)
 			}
 		}
@@ -61,11 +60,9 @@ class Sync (store: UrlStore, web: HttpClient) {
 	private def processLocalChanges(summary:SyncSummary) = {
 		store.dirty().foreach { item =>
 			if(item.active) {
-				Util.info("adding URL (remotely): " + item.url)
 				addItemRemotely(item)
 				summary.added += 1
 			} else {
-				Util.info("removing URL (remotely): " + item.url)
 				removeItemRemotely(item)
 				summary.removed += 1
 			}
@@ -73,12 +70,15 @@ class Sync (store: UrlStore, web: HttpClient) {
 	}
 
 	private def removeItemRemotely(item: Url) = {
+		Util.info("removing URL (remotely): " + item.url)
 		pagefeed.delete(item.url)
 		store.purge(item)
 	}
 
 	private def addItemRemotely(item: Url) = {
-		pagefeed.add(item.url)
+		Util.info("adding URL (remotely): " + item.url)
+		val remoteUrl:Option[Url] = pagefeed.add(item.url)
+		remoteUrl.map(updateItem(item, _))
 		store.markClean(item)
 	}
 
@@ -86,7 +86,9 @@ class Sync (store: UrlStore, web: HttpClient) {
 		Util.info("adding URL (locally): " + url)
 		store.add(url)
 	}
+
 	private def removeItemLocally(url: Url) = {
+		Util.info("removing URL (locally): " + url)
 		store.purge(url)
 	}
 
@@ -94,6 +96,7 @@ class Sync (store: UrlStore, web: HttpClient) {
 		if(local.title == remote.title) {
 			return
 		}
+		Util.info("title update: '"+local.title+"' is now '"+remote.title+"'")
 		local.title = remote.title
 		store.update(local)
 	}
