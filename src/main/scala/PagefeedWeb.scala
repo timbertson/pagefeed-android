@@ -36,8 +36,8 @@ class PagefeedWeb(web: HttpClient) {
 		}
 	}
 
-	def listDocumentsSince(lastDoctime:Long):List[Url] = {
-		var response = get(BASE + "page/list/?since=" + lastDoctime.toString)
+	def documents():List[Url] = {
+		var response = get(BASE + "page/list/")
 		try {
 			val array = new JSONTokener(response).nextValue().asInstanceOf[JSONArray]
 			(0 until array.length).map { i =>

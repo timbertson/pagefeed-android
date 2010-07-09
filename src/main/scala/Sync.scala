@@ -28,7 +28,7 @@ class Sync (store: UrlStore, web: HttpClient) {
 
 	private def processRemoteChanges(summary:SyncSummary):Unit = {
 		def getUrl(u:Url) = u.url
-		val remoteUrls = pagefeed.listDocumentsSince(summary.latestDocTime).toList
+		val remoteUrls = pagefeed.documents().toList
 		Log.d("pagefeed", "urls are: " + remoteUrls.mkString(", "))
 		val localUrlObjects = store.active().toList
 		val localUrls = localUrlObjects.map(_.url)
@@ -40,6 +40,12 @@ class Sync (store: UrlStore, web: HttpClient) {
 			}
 			if(remoteUrl.timestamp > summary.latestDocTime) {
 				summary.latestDocTime = remoteUrl.timestamp
+			}
+		}
+		for(localUrl <- localUrlObjects) {
+			if ((!localUrl.dirty) && (!remoteUrls.contains(localUrl.url))) {
+				Util.info("removing URL (locally): " + localUrl)
+				removeItemLocally(localUrl)
 			}
 		}
 	}
@@ -70,5 +76,8 @@ class Sync (store: UrlStore, web: HttpClient) {
 
 	private def addItemLocally(url: Url) = {
 		store.add(url)
+	}
+	private def removeItemLocally(url: Url) = {
+		store.purge(url)
 	}
 }
