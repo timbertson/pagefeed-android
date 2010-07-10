@@ -55,11 +55,21 @@ class UrlStore (context: Context) extends
 		values.put(DIRTY, u.dirty)
 		values.put(ACTIVE, u.active)
 		try {
-			db.insert(tableName, null, values)
+			db.insertOrThrow(tableName, null, values)
 		} catch {
-			case _:SQLiteConstraintException => {} // URL uniqueness - doesn't matter
+			case _:SQLiteConstraintException => {
+				db.update(tableName, values, URL + " = ?", List(u.url).toArray)
+			}
 		}
 		Util.info("inserted " + u + " into local DB")
+	}
+
+	def hasActive(u:String) = {
+		val cursor = db.query(tableName, List(ID).toArray, URL + " = ? and " + ACTIVE + " = 1", List(u.toString).toArray, null, null, null)
+		Util.info("db has " + cursor.getCount() + " items equal to " + u)
+		val result = cursor.getCount() > 0
+		cursor.close()
+		result
 	}
 
 	def add(u:String):Unit = {
@@ -136,8 +146,8 @@ class UrlStore (context: Context) extends
 			"_id integer primary key, " +
 			"url text unique not null, " +
 			"dirty boolean, " +
-			"active boolean default 1" +
-			"date integer default 0" +
+			"active boolean default 1," +
+			"date integer default 0," +
 			"title text default 0" +
 		");")
 	}
