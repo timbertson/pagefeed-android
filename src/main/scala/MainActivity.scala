@@ -21,6 +21,13 @@ import _root_.android.view.MenuItem
 import _root_.android.text.format.DateUtils
 import _root_.android.view.ContextMenu.ContextMenuInfo
 import _root_.android.widget.AdapterView.AdapterContextMenuInfo
+
+protected class Selection() {
+	var _idx:Option[Int] = None
+	def set(idx:Int) =     { _idx = Some(idx) }
+	def clear() =          { _idx = None }
+	def index:Option[Int] = _idx
+}
  
 class MainActivity extends ListActivity {
 	var urlStore:UrlStore = null
@@ -28,12 +35,17 @@ class MainActivity extends ListActivity {
 	var adapter: SimpleCursorAdapter = null
 	var broadcastReceiver:CallbackReceiver = null
 	var syncDescriptionView:TextView = null
+	var activeSelection = new Selection()
+
+	override def onCreate(bundle:Bundle) = {
+		super.onCreate(bundle)
+		activeSelection.clear()
+		val cls = classOf[PagefeedProvider]
+		startAccountSelectorIfNecessary()
+	}
 
 	override def onStart() = {
 		super.onStart()
-		val cls = classOf[PagefeedProvider]
-
-		startAccountSelectorIfNecessary()
 		urlStore = new UrlStore(this)
 
 		// init views
@@ -47,6 +59,16 @@ class MainActivity extends ListActivity {
 		// and the main data source
 		adapter = initAdapter()
 		setListAdapter(adapter)
+
+		activeSelection.index map { idx =>
+			val view = findViewById(_root_.android.R.id.list)
+			if (view != null) {
+				Util.info("selection set to: " + idx)
+				val listView = view.asInstanceOf[ListView]
+				listView.setSelection(idx)
+			}
+		}
+		activeSelection.clear()
 	}
 
 	private def startAccountSelectorIfNecessary() = {
@@ -188,6 +210,7 @@ class MainActivity extends ListActivity {
 		Util.info("launching URL: " + cursor.getString(UrlStore.indexOf(UrlStore.URL)))
 		val intent = new Intent(Intent.ACTION_VIEW)
 		intent.setData(Uri.parse(url))
+		activeSelection.set(position)
 		startActivity(intent)
 	}
 
