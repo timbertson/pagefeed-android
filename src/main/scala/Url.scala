@@ -6,5 +6,5 @@ object Url {
 }
 
 class Url(var url: String, var title:String, var dirty:Boolean, var active:Boolean, var timestamp:Long) {
-	override def toString = url
+	override def toString = url + " - " + title
 }

@@ -88,18 +88,30 @@ class MainActivity extends ListActivity {
 			this,
 			R.layout.url_item,
 			cursor,
-			Array(UrlStore.URL, UrlStore.DIRTY),
-			Array(R.id.url, R.id.sync_state)
+			Array(UrlStore.URL, UrlStore.DIRTY, UrlStore.TITLE),
+			Array(R.id.url, R.id.sync_state, R.id.title)
 		)
 		adapter.setViewBinder(new SimpleCursorAdapter.ViewBinder() {
 			var dirtyIndex = UrlStore.indexOf(UrlStore.DIRTY)
+			var titleIndex = UrlStore.indexOf(UrlStore.TITLE)
 			override def setViewValue(view: View, cursor: Cursor, columnIndex: Int):Boolean = {
 				if(columnIndex == dirtyIndex) {
-					val dirtyIndicator = view.asInstanceOf[View]
-					val dirty = cursor.getInt(dirtyIndex) > 0
-					val bg = if (dirty) R.drawable.ring else R.drawable.circle
-					dirtyIndicator.setBackgroundResource(bg)
-					true
+						val dirtyIndicator = view.asInstanceOf[View]
+						val dirty = cursor.getInt(dirtyIndex) > 0
+						val bg = if (dirty) R.drawable.ring else R.drawable.circle
+						dirtyIndicator.setBackgroundResource(bg)
+						true
+				} else if(columnIndex == titleIndex) {
+					val titleView = view.asInstanceOf[TextView]
+					val title = cursor.getString(titleIndex)
+					if(title.length == 0) {
+						titleView.setVisibility(View.GONE)
+						true
+					} else {
+						titleView.setVisibility(View.VISIBLE)
+						titleView.setText(title)
+						true
+					}
 				} else {
 					false
 				}

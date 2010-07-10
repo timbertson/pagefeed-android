@@ -54,6 +54,7 @@ class UrlStore (context: Context) extends
 		values.put(URL, u.url)
 		values.put(DIRTY, u.dirty)
 		values.put(ACTIVE, u.active)
+		values.put(TITLE, u.title)
 		try {
 			db.insertOrThrow(tableName, null, values)
 		} catch {
@@ -148,13 +149,13 @@ class UrlStore (context: Context) extends
 			"dirty boolean, " +
 			"active boolean default 1," +
 			"date integer default 0," +
-			"title text default 0" +
+			"""title text default "" """ +
 		");")
 	}
 
 	override def onUpgrade(db:SQLiteDatabase, old_version:Int, new_version:Int) = {
 		val transitions = Map(
-			2 -> "alter table url add column title text default '';"
+			2 -> """alter table url add column title text default "";"""
 		)
 		for (i <- (old_version until new_version).map(_+1)) {
 			Util.info("DB::Migrate[" + old_version + "->" + i + "] " + transitions(i))

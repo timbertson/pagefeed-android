@@ -1,6 +1,7 @@
 package net.gfxmonk.android.pagefeed
 
 import scala.io.Source
+import scala.collection.mutable.Map
 import _root_.org.apache.http.client.methods.HttpGet
 import _root_.org.apache.http.client.methods.HttpPost
 import _root_.org.apache.http.client.params.ClientPNames
@@ -16,7 +17,8 @@ import _root_.org.json.JSONTokener
 import _root_.org.json.JSONArray
 
 object PagefeedWeb {
-	val BASE = "https://pagefeed.appspot.com/"
+	var VERSION:String = null
+	val BASE = "https://" + (if (VERSION != null) (VERSION + ".latest.") else "") + "pagefeed.appspot.com/"
 }
 
 class PagefeedWeb(web: HttpClient) {
@@ -29,7 +31,7 @@ class PagefeedWeb(web: HttpClient) {
 			parse(response).firstOption
 		} catch {
 			case e:ParseException => {
-				Util.info("after ADDING item remotely, failed to parse JSON: " + response)
+				Util.info("after adding item remotely, failed to parse JSON: " + response)
 				return None
 			}
 		}
@@ -70,8 +72,8 @@ class PagefeedWeb(web: HttpClient) {
 	}
 
 	private def post(url:String, params:Map[String,String]):String = {
-		params ++ "json" -> "true"
-		params ++ "quiet" -> "true"
+		params.put("json", "true")
+		params.put("quiet", "true")
 		Util.info("POSTing: " + url + " with params = " + params)
 		val post = new HttpPost(url)
 		post.setEntity(makeParams(params))
