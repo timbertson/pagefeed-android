@@ -104,7 +104,7 @@ class MainActivity extends ListActivity {
 				} else if(columnIndex == titleIndex) {
 					val titleView = view.asInstanceOf[TextView]
 					val title = cursor.getString(titleIndex)
-					if(title.length == 0) {
+					if(title == null || title.length == 0) {
 						titleView.setVisibility(View.GONE)
 						true
 					} else {

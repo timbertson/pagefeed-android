@@ -15,6 +15,7 @@ import _root_.org.apache.http.message.BasicNameValuePair
 import _root_.org.apache.http.NameValuePair
 import _root_.org.json.JSONTokener
 import _root_.org.json.JSONArray
+import _root_.org.json.JSONException
 
 object PagefeedWeb {
 	var VERSION:String = null
@@ -63,6 +64,7 @@ class PagefeedWeb(web: HttpClient) {
 			}.toList
 		} catch {
 			case e:ClassCastException => throw new ParseException(body, e)
+			case e:JSONException => throw new ParseException(body, e)
 		}
 	}
 
