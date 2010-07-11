@@ -30,7 +30,7 @@ class Sync (store: UrlStore, web: HttpClient) {
 		val remoteUrlObjects:List[Url] = pagefeed.documents().toList
 		val remoteUrls = remoteUrlObjects.map(_.url)
 		Log.d("pagefeed", "remote urls are: " + remoteUrlObjects.mkString(", "))
-		val localUrlObjects = store.active().toList
+		val localUrlObjects = store.all().toList
 		Log.d("pagefeed", "local urls are: " + localUrlObjects.mkString(", "))
 		val localUrlMap = Map[String,Url]((localUrlObjects.map(u => u.url -> u)):_*)
 
@@ -41,7 +41,9 @@ class Sync (store: UrlStore, web: HttpClient) {
 					summary.added += 1
 				}
 				case Some(localUrl:Url) => {
-					updateItem(localUrl, remoteUrl)
+					if(localUrl.active) {
+						updateItem(localUrl, remoteUrl)
+					}
 				}
 			}
 
@@ -50,8 +52,8 @@ class Sync (store: UrlStore, web: HttpClient) {
 			}
 		}
 
-		for(localUrl <- localUrlObjects) {
-			if ((!localUrl.dirty) && (!remoteUrls.contains(localUrl.url))) {
+		for(localUrl <- localUrlObjects if localUrl.active && (!localUrl.dirty)) {
+			if (!remoteUrls.contains(localUrl.url)) {
 				removeItemLocally(localUrl)
 			}
 		}

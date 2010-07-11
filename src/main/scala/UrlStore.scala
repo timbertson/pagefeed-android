@@ -38,15 +38,19 @@ class UrlStore (context: Context) extends
 
 	Util.info("UrlStore: created")
 	var openCursors = new Queue[Cursor]()
-	var _db:SQLiteDatabase = null
+	var _db:Option[SQLiteDatabase] = None
 
-	private def db = {
-		_db = getWritableDatabase()
-		_db
+	private def db:SQLiteDatabase = {
+		_db = Some(getWritableDatabase())
+		_db.get
 	}
 
 	def active() = {
 		get(ACTIVE + " = 1")
+	}
+
+	def all() = {
+		get(null)
 	}
 
 	def add(u:Url):Unit = {
@@ -127,9 +131,7 @@ class UrlStore (context: Context) extends
 			}
 		}
 		openCursors = new Queue[Cursor]()
-		if(_db != null) {
-			_db.close()
-		}
+		_db.map(_.close())
 		Util.info("UrlStore::close()")
 	}
 
