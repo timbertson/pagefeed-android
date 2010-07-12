@@ -63,8 +63,7 @@ class PagefeedWeb(web: HttpClient) {
 				Url.remote(url, timestamp, title)
 			}.toList
 		} catch {
-			case e:ClassCastException => throw new ParseException(body, e)
-			case e:JSONException => throw new ParseException(body, e)
+			case e @ (_:ClassCastException|_:JSONException) => throw new ParseException(body, e)
 		}
 	}
 
