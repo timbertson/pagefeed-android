@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+	android:orientation="vertical"
+	android:layout_width="fill_parent"
+	android:layout_height="fill_parent"
+	android:paddingLeft="0dp"
+	android:paddingRight="0dp">
+
+	<TextView
+		android:layout_width="fill_parent"
+		android:layout_height="wrap_content"
+		android:paddingLeft="8dp"
+		android:paddingBottom="14dp"
+		android:paddingRight="8dp"
+		android:text="The item you've added is already saved to pagefeed"
+		>
+	</TextView>
+
+	<ListView android:id="@id/android:list"
+		android:layout_width="fill_parent"
+		android:layout_height="fill_parent"
+		android:background="#FFFFFFFF"
+		android:layout_weight="1"
+		android:divider="#33000000"
+		android:dividerHeight="1px"
+		android:drawSelectorOnTop="false"/>
+
+</LinearLayout>
+
