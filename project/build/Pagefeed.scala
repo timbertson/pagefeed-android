@@ -11,7 +11,7 @@ class Pagefeed(info: ProjectInfo) extends ParentProject(info) {
   /*lazy val tests = project("tests",  "tests", new TestProject(_), main)*/
 
   class MainProject(info: ProjectInfo) extends AndroidProject(info) with Defaults with MarketPublish {
-    val scalatest = "org.scalatest" % "scalatest" % "1.0" % "test"
+    //val scalatest = "org.scalatest" % "scalatest" % "1.0" % "test"
     val keyalias = "android"
   }
 

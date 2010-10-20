@@ -28,6 +28,7 @@ class ShareLink extends ListActivity {
 		Util.info("url = " + url)
 		if (url == null || !url.startsWith("http")) {
 			Util.toast("invalid URL", getApplicationContext())
+			finish()
 		} else {
 			val self = this
 			withService { service =>
