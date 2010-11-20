@@ -12,11 +12,7 @@ class PagefeedService extends Service {
 	override def onStartCommand(intent: Intent, flags: Int, id: Int):Int = {
 		intent.getAction match {
 			case Intent.ACTION_SEND => {
-				try {
-					add(intent.getData.toString)
-				} finally {
-					cleanup()
-				}
+				add(intent.getData.toString)
 			}
 			case _ => invalidIntent()
 		}
@@ -53,19 +49,11 @@ class PagefeedService extends Service {
 		Util.toast("invalid intent", getApplicationContext())
 	}
 
-	override def onDestroy() = cleanup()
-
 	private def store:UrlStore = {
 		if(_store.isEmpty) {
 			_store = Some(new UrlStore(this))
 		}
 		_store.get
-	}
-
-	private def cleanup() = {
-		Util.info("pagefeedservice: cleanup()")
-		_store.map(_.close)
-		_store = None
 	}
 
 }

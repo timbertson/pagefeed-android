@@ -1,5 +1,6 @@
 import sbt._
 
 class Plugins(info: ProjectInfo) extends PluginDefinition(info) {
-  val android = "org.scala-tools.sbt" % "sbt-android-plugin" % "0.4.2"
+	val android = "org.scala-tools.sbt" % "sbt-android-plugin" % "0.4.2"
+	val codefellow = "de.tuxed" % "codefellow-plugin" % "0.3"
 }

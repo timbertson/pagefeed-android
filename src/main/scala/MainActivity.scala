@@ -84,16 +84,17 @@ class MainActivity extends ListActivity {
 
 	private def initAdapter() = {
 		cursor = urlStore.active().cursor
+		startManagingCursor(cursor)
 		adapter = new SimpleCursorAdapter(
 			this,
 			R.layout.url_item,
 			cursor,
-			Array(UrlStore.URL, UrlStore.DIRTY, UrlStore.TITLE),
+			Array(Contract.Data.URL, Contract.Data.DIRTY, Contract.Data.TITLE),
 			Array(R.id.url, R.id.sync_state, R.id.title)
 		)
 		adapter.setViewBinder(new SimpleCursorAdapter.ViewBinder() {
-			var dirtyIndex = UrlStore.indexOf(UrlStore.DIRTY)
-			var titleIndex = UrlStore.indexOf(UrlStore.TITLE)
+			var dirtyIndex = UrlStore.indexOf(Contract.Data.DIRTY)
+			var titleIndex = UrlStore.indexOf(Contract.Data.TITLE)
 			override def setViewValue(view: View, cursor: Cursor, columnIndex: Int):Boolean = {
 				if(columnIndex == dirtyIndex) {
 						val dirtyIndicator = view.asInstanceOf[View]
@@ -187,11 +188,11 @@ class MainActivity extends ListActivity {
 
 	private def itemAt(position: Int):String = {
 		cursor.moveToPosition(position)
-		cursor.getString(UrlStore.indexOf(UrlStore.URL))
+		cursor.getString(UrlStore.indexOf(Contract.Data.URL))
 	}
 
 	private def deleteItemAt(position: Int) = {
-		Util.info("deleting URL: " + cursor.getString(UrlStore.indexOf(UrlStore.URL)))
+		Util.info("deleting URL: " + cursor.getString(UrlStore.indexOf(Contract.Data.URL)))
 		urlStore.markDeleted(itemAt(position))
 		refresh()
 	}
@@ -219,9 +220,10 @@ class MainActivity extends ListActivity {
 
 	override def onListItemClick(list: ListView, view: View, position: Int, id: Long) = {
 		var url = itemAt(position)
-		Util.info("launching URL: " + cursor.getString(UrlStore.indexOf(UrlStore.URL)))
-		val intent = new Intent(Intent.ACTION_VIEW)
-		intent.setData(Uri.parse(url))
+		/*Util.info("launching URL: " + url))*/
+		Util.info("showing item view: " + url)
+		val intent = new Intent(Intent.ACTION_VIEW, Contract.ContentUri.forPage(url))
+		intent.setClass(this, classOf[ViewPost]);
 		activeSelection.set(position)
 		startActivity(intent)
 	}
@@ -229,7 +231,6 @@ class MainActivity extends ListActivity {
 	override def onStop() = {
 		super.onStop()
 		stopListeningForSync()
-		urlStore.close()
 	}
 }
 

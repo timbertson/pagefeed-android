@@ -2,29 +2,16 @@ package net.gfxmonk.android.pagefeed
  
 import _root_.android.content.Context
 import scala.collection.mutable.Map
-import scala.collection.mutable.Queue
-import java.util.logging.Logger
 import _root_.android.database.Cursor
-import _root_.android.database.sqlite.SQLiteDatabase
-import _root_.android.database.sqlite.SQLiteDatabase.CursorFactory
-import _root_.android.database.sqlite.SQLiteOpenHelper
 import _root_.android.content.ContentValues
 import _root_.android.net.Uri
-import _root_.android.database.sqlite.SQLiteConstraintException
 
 
 object UrlStore {
-	val name = "pagefeed"
-	val version = 2
-	val tableName = "url"
-	val URL = "url"
-	val DIRTY = "dirty"
-	val ACTIVE = "active"
-	val TITLE= "title"
-	val ID = "_id"
+	private val Data = Contract.Data
 	val TRUE = 1
 	val FALSE = 0
-	val ATTRIBUTES = Array(UrlStore.ID, UrlStore.URL, UrlStore.ACTIVE, UrlStore.DIRTY, UrlStore.TITLE)
+	val ATTRIBUTES = Array(Data.ID, Data.URL, Data.ACTIVE, Data.DIRTY, Data.TITLE)
 	def indexOf(attr:String) = {
 		val index = UrlStore.ATTRIBUTES.indexOf(attr)
 		if(index < 0) { throw new RuntimeException("no such field: " + attr) }
@@ -32,21 +19,22 @@ object UrlStore {
 	}
 }
 
-class UrlStore (context: Context) extends
-	SQLiteOpenHelper(context, UrlStore.name, null, UrlStore.version) {
+class UrlStore (context: Context) {
 	import UrlStore._
+	import Contract.Data._
 
 	Util.info("UrlStore: created")
-	var openCursors = new Queue[Cursor]()
-	var _db:Option[SQLiteDatabase] = None
-
-	private def db:SQLiteDatabase = {
-		_db = Some(getWritableDatabase())
-		_db.get
-	}
 
 	def active() = {
 		get(ACTIVE + " = 1")
+	}
+
+	def emptyPages() = {
+		get(BODY + """ is null """)
+	}
+
+	def db = {
+		context.getContentResolver()
 	}
 
 	def all() = {
@@ -60,17 +48,19 @@ class UrlStore (context: Context) extends
 		values.put(ACTIVE, u.active)
 		values.put(TITLE, u.title)
 		try {
-			db.insertOrThrow(tableName, null, values)
+			val result: Uri = db.insert(u.contentUri, values)
+			assert(result != null)
 		} catch {
-			case _:SQLiteConstraintException => {
-				db.update(tableName, values, URL + " = ?", List(u.url).toArray)
+			case _:AssertionError => {
+				Util.info("updating instead of adding - should this be possible?")
+				db.update(u.contentUri, values, URL + " = ?", List(u.url).toArray)
 			}
 		}
 		Util.info("inserted " + u + " into local DB")
 	}
 
 	def hasActive(u:String) = {
-		val cursor = db.query(tableName, List(ID).toArray, URL + " = ? and " + ACTIVE + " = 1", List(u.toString).toArray, null, null, null)
+		val cursor = db.query(Contract.ContentUri.forPage(u), List(ID).toArray, ACTIVE + " = 1", null, null)
 		Util.info("db has " + cursor.getCount() + " items equal to " + u)
 		val result = cursor.getCount() > 0
 		cursor.close()
@@ -92,25 +82,25 @@ class UrlStore (context: Context) extends
 	def markClean(item:Url) = {
 		assert(item.active, "a clean deleted item should be purged!")
 		Util.info("marking item as clean:" + item)
-		update(item.url, DIRTY -> FALSE)
+		update(item.contentUri, DIRTY -> FALSE)
 	}
 
 	def markDeleted(url:String) = {
 		Util.info("marking item as deleted (locally):" + url)
-		update(url, ACTIVE -> FALSE, DIRTY -> TRUE)
+		update(Contract.ContentUri.forPage(url), ACTIVE -> FALSE, DIRTY -> TRUE)
 	}
 
 	def purge(item:Url) = {
 		Util.info("purging item locally: " + item)
-		db.delete(tableName, URL + " = ?", List(item.url).toArray)
+		db.delete(item.contentUri, null, null)
 	}
 
 	def update(u:Url) {
 		// NOTE: only updates what can change (so far).
-		update(u.url, TITLE -> u.title)
+		update(u.contentUri, TITLE -> u.title, BODY -> u.body)
 	}
 
-	private def update(url:String, params:Tuple2[String,Any]*) = {
+	private def update(contentUri:Uri, params:Tuple2[String,Any]*) = {
 		val values = new ContentValues()
 		for ((k,v) <- params) {
 			v match {
@@ -119,56 +109,21 @@ class UrlStore (context: Context) extends
 				case v => throw new RuntimeException("invalid data type!" + v)
 			}
 		}
-		db.update(tableName, values, URL + " = ?", List(url).toArray)
-	}
-
-	override def close() = {
-		super.close()
-		for (cursor <- openCursors ) {
-			if (!cursor.isClosed()) {
-				Util.info("cursor::close()")
-				cursor.close()
-			}
-		}
-		openCursors = new Queue[Cursor]()
-		_db.map(_.close())
-		Util.info("UrlStore::close()")
+		db.update(contentUri, values, null, null)
 	}
 
 	private def get(cond: String) = {
-		val urlSet = new UrlSet(db.query(tableName, ATTRIBUTES, cond, Array(), null, null, null))
-		openCursors.enqueue(urlSet.cursor)
-		urlSet
-	}
-
-	// --- db bookkeeping
-
-	override def onCreate(db:SQLiteDatabase) = {
-		Util.info("creating table!")
-		db.execSQL("create table url (" +
-			"_id integer primary key, " +
-			"url text unique not null, " +
-			"dirty boolean, " +
-			"active boolean default 1," +
-			"date integer default 0," +
-			"""title text default "" """ +
-		");")
-	}
-
-	override def onUpgrade(db:SQLiteDatabase, old_version:Int, new_version:Int) = {
-		val transitions = Map(
-			2 -> """alter table url add column title text default "";"""
-		)
-		for (i <- (old_version until new_version).map(_+1)) {
-			Util.info("DB::Migrate[" + old_version + "->" + i + "] " + transitions(i))
-			db.execSQL(transitions(i))
-		}
+		Util.info("querying for uri " + Contract.ContentUri.PAGES)
+		new UrlSet(db.query(Contract.ContentUri.PAGES, ATTRIBUTES, cond, Array(), Contract.Data.ID))
 	}
 
 }
 
 class UrlSet(var cursor:Cursor) {
 	import UrlStore._
+	import Contract.Data._
+	Util.info("created UrlSet from cursor with " + cursor + " cursor")
+	Util.info("created UrlSet from cursor with " + cursor.getCount() + " rows")
 
 	private def elements = {
 		val columnMap = Map[String,Int]()
@@ -197,3 +152,4 @@ class UrlSet(var cursor:Cursor) {
 		list
 	}
 }
+

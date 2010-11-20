@@ -10,6 +10,7 @@ import _root_.android.content.Context
 import _root_.android.content.SyncResult
 import _root_.android.os.Bundle
 import _root_.android.util.Log
+import _root_.android.net.ConnectivityManager
 
 import scala.io.Source
 import scala.collection.jcl.BufferWrapper
@@ -48,6 +49,7 @@ class SyncAdapter(context: Context, autoInitialize: Boolean)
 {
 		val syncProgress = new SyncProgress(context)
 		var success = false
+		Util.info("Sync: Start")
 		syncProgress.start()
 		var authToken:String = null
 		try {
@@ -78,27 +80,35 @@ class SyncAdapter(context: Context, autoInitialize: Boolean)
 					return
 				}
 			}
+			Util.info("Sync: authenticated OK")
 
 			val urlStore = new UrlStore(context)
 			val sync = new Sync(urlStore, client)
 			val lastTimestamp = Util.prefLong(context, SyncProgress.PREFERENCE_LAST_DOCTIME, 0)
-			try {
-				Util.info("sync: got cookie...")
-				val sync = new Sync(new UrlStore(context), client)
-				val syncResult = sync.run(lastTimestamp)
-				result.stats.numInserts = syncResult.added.asInstanceOf[Long]
-				result.stats.numDeletes = syncResult.removed.asInstanceOf[Long]
-				Util.info("sync result is:" + syncResult)
-				if(syncResult.latestDocTime > lastTimestamp) {
-					updateTimestamp(context, syncResult.latestDocTime)
-				}
-				success = true
-			} finally {
-				urlStore.close()
+			Util.info("sync: got cookie...")
+			val syncResult = sync.run(lastTimestamp)
+			if (shouldDoFullSync) {
+				Util.info("downloading full page contents")
+				sync.downloadPageContents()
 			}
+			result.stats.numInserts = syncResult.added.asInstanceOf[Long]
+			result.stats.numDeletes = syncResult.removed.asInstanceOf[Long]
+			Util.info("sync result is:" + syncResult)
+			if(syncResult.latestDocTime > lastTimestamp) {
+				updateTimestamp(context, syncResult.latestDocTime)
+			}
+			success = true
 		} finally {
 			syncProgress.finish(success)
 		}
+	}
+
+	private def shouldDoFullSync:Boolean = {
+		return true
+		// val connectionManager = context.getSystemService(Context.CONNECTIVITY_SERVICE).asInstanceOf[ConnectivityManager]
+		// //TODO: add user pref to override this logic
+		// val isOnWifi = connectionManager.getActiveNetworkInfo().getType() == ConnectivityManager.TYPE_WIFI
+		// isOnWifi
 	}
 
 	private def updateTimestamp(ctx:Context, newTimestamp:Long) = {

@@ -6,5 +6,11 @@ object Url {
 }
 
 class Url(var url: String, var title:String, var dirty:Boolean, var active:Boolean, var timestamp:Long) {
+	var body:String = null
 	override def toString = url + " - " + title
+	def contentUri = Contract.ContentUri.forPage(url)
+	def withBody(body:String) = {
+		this.body = body
+		this
+	}
 }

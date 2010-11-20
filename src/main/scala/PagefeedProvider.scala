@@ -1,38 +1,143 @@
 package net.gfxmonk.android.pagefeed
 
+import _root_.android.content.Context
+import _root_.android.database.Cursor
+import _root_.android.database.SQLException
+import _root_.android.database.sqlite.SQLiteDatabase
+import _root_.android.database.sqlite.SQLiteDatabase.CursorFactory
+import _root_.android.database.sqlite.SQLiteOpenHelper
+import _root_.android.content.ContentValues
 import _root_.android.content.ContentProvider
 import _root_.android.net.Uri
-import _root_.android.content.ContentValues
-import _root_.android.database.Cursor
+
 
 class PagefeedProvider extends ContentProvider {
+
+	private var context:Context = null
+	var db:UrlDb = null
+
 	override def onCreate() = {
+		context = getContext()
+		db = new UrlDb(context)
+		Util.info("Created content provider!")
 		true
 	}
 
-	override def update(uri: Uri, values: ContentValues, selection: String, selectionArgs: Array[String]):Int = {
-		// noop
-		1
-	}
-
-	override def delete(uri: Uri, selection: String, selectionArgs: Array[String]):Int = {
-		// noop
-		1
-	}
-
-	override def insert(uri: Uri, values: ContentValues):Uri = {
-		// noop
-		null
-	}
-
 	override def getType(uri: Uri):String = {
-		"vnd.android.cursor.item/vnd.pagefeed.url"
-		/*"vnd.android.cursor.dir/vnd.pagefeed.url"*/
+		uri match {
+			case Contract.ContentUri.PAGES => "vnd.android.cursor.dir/vnd.pagefeed.url"
+			case _ => "vnd.android.cursor.item/vnd.pagefeed.url"
+		}
 	}
 
-	override def query(uri: Uri, projection: Array[String], selection:String, selectionArgs: Array[String], sortOrder:String):Cursor = {
-		// noop
-		null
+	override def query(uri:Uri, projection: Array[String], selection: String, selectionArgs: Array[String], sortOrder: String) = {
+		Util.info("query running")
+		if(uri == Contract.ContentUri.PAGES) {
+			db.query(projection, selection, selectionArgs, sortOrder)
+		}
+		else {
+			db.queryForUri(uri, projection, selection, selectionArgs, sortOrder)
+		}
 	}
 
+	override def insert(uri:Uri, values:ContentValues) = db.insert(uri, values)
+
+	override def delete(uri:Uri, selection: String, selectionArgs: Array[String]): Int = {
+		assert(selection == null && selectionArgs == null)
+		db.delete(uri)
+	}
+
+	override def update(uri:Uri, values:ContentValues, selection: String, selectionArgs: Array[String]): Int = {
+		assert(selection == null && selectionArgs == null)
+		db.update(uri, values)
+	}
 }
+
+
+
+
+
+object UrlDb {
+	val name = "pagefeed"
+	val version = 3
+	val tableName = "url"
+}
+
+class UrlDb (context: Context) extends SQLiteOpenHelper(context, UrlDb.name, null, UrlDb.version) {
+	import UrlDb._
+	import Contract.Data._
+	var _db:Option[SQLiteDatabase] = None
+
+	private def db[Result](func: (SQLiteDatabase)=>Result):Result = {
+		_db = Some(getWritableDatabase())
+		val db = _db.get
+		db.synchronized {
+			val r: Result = func(db)
+			return r
+		}
+	}
+
+	def query(projection: Array[String], selection: String, selectionArgs: Array[String], sortOrder: String) = {
+		Util.info("querying data. selection = " + selection + ", selectionArgs = " + selectionArgs)
+		db(_.query(tableName, projection, selection, selectionArgs, null, null, sortOrder))
+	}
+
+	def queryForUri(uri:Uri, projection: Array[String], selection: String, selectionArgs: Array[String], sortOrder:String) = {
+		val scopedSelection = (if(selection == null) "" else (selection + " and ")) + URL + " = ?"
+		var args = selectionArgs match {
+			case null => List[String]()
+			case _ => selectionArgs.toList.asInstanceOf[List[String]]
+		}
+		args = args  ++ List(uri.getLastPathSegment())
+		query(projection, scopedSelection, args.toArray, sortOrder)
+	}
+
+	def delete(uri: Uri) = {
+		Util.info("deleting url " + uri.getLastPathSegment())
+		db(_.delete(tableName, URL + " = ?", List(uri.getLastPathSegment()).toArray))
+	}
+
+	def insert(uri: Uri, values:ContentValues): Uri = {
+		try {
+			val inserted = db(_.insertOrThrow(tableName, null, values))
+			inserted match {
+				case 1 => return uri
+				case 0 => return null
+				case _ => throw new AssertionError("insert returned " + inserted + " rows!")
+			}
+		} catch {
+			case _:SQLException => return null
+		}
+	}
+
+	def update(uri:Uri, values: ContentValues) = {
+		db(_.update(tableName, values, URL + " = ?", List(uri.getLastPathSegment()).toArray))
+	}
+
+	// --- db bookkeeping
+
+	override def onCreate(db:SQLiteDatabase) = {
+		Util.info("creating table!")
+		db.execSQL("create table url (" +
+			"_id integer primary key" +
+			", url text unique not null" +
+			", dirty boolean" +
+			", active boolean default 1" +
+			", date integer default 0" +
+			""", title text default "" """ +
+			""", body text default null """ +
+		");")
+	}
+
+	override def onUpgrade(db:SQLiteDatabase, old_version:Int, new_version:Int) = {
+		val transitions = Map(
+			  2 -> """alter table url add column title text default "";"""
+			, 3 -> """alter table url add column body text default null;"""
+		)
+		for (i <- (old_version until new_version).map(_+1)) {
+			Util.info("DB::Migrate[" + old_version + "->" + i + "] " + transitions(i))
+			db.execSQL(transitions(i))
+		}
+	}
+}
+

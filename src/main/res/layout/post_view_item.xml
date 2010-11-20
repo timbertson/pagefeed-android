@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+/*
+ * Copyright (C) 2007-2010 Michael Novak <mike@androidnerds.org>, Josh Guilfoyle <jasta@devtcg.org>
+ *
+ * This program is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the
+ * Free Software Foundation; either version 2, or (at your option) any
+ * later version.
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * General Public License for more details.
+ */
+-->
+<FrameLayout  xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/post_view_container"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent">
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content">
+
+
+        <TextView android:id="@+id/post_view_title"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:textStyle="bold"
+            android:paddingLeft="8px"
+            android:paddingRight="8px" />
+
+        <WebView android:id="@+id/post_view_text"
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent" />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/post_view_loading"
+        android:orientation="vertical"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:background="#dd000000"
+        android:padding="5dip">
+
+        <TextView
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:text="Loading..."
+            />
+
+    </LinearLayout>
+</FrameLayout>

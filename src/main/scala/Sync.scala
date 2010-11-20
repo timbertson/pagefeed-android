@@ -16,6 +16,13 @@ class Sync (store: UrlStore, web: HttpClient) {
 		summary
 	}
 
+	def downloadPageContents() = {
+		for (page <- store.emptyPages()) {
+			Util.info("populating body for url: " + page.url)
+			populateBody(page)
+		}
+	}
+
 	private def maxTimestamp(l:List[Long]):Long = {
 		var max:Long = 0
 		for(i <- l) {
@@ -69,6 +76,16 @@ class Sync (store: UrlStore, web: HttpClient) {
 				summary.removed += 1
 			}
 		}
+	}
+
+	private def populateBody(item: Url) = {
+		val body = pagefeed.getBody(item.url)
+		updateBody(item, body)
+	}
+
+	private def updateBody(item:Url, content:String) = {
+		item.body = content
+		store.update(item)
 	}
 
 	private def removeItemRemotely(item: Url) = {
