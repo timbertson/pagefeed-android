@@ -99,12 +99,11 @@ class UrlDb (context: Context) extends SQLiteOpenHelper(context, UrlDb.name, nul
 
 	def insert(uri: Uri, values:ContentValues): Uri = {
 		try {
-			val inserted = db(_.insertOrThrow(tableName, null, values))
-			inserted match {
-				case 1 => return uri
-				case 0 => return null
-				case _ => throw new AssertionError("insert returned " + inserted + " rows!")
+			val insertedId = db(_.insertOrThrow(tableName, null, values))
+			if(insertedId < 0) {
+				return null
 			}
+			return uri
 		} catch {
 			case _:SQLException => return null
 		}

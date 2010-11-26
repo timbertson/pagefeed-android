@@ -52,25 +52,30 @@ class PagefeedWeb(web: HttpClient) {
 		parse(response)
 	}
 
-	def parse(body:String):List[Url] = {
+	def parse(response:String):List[Url] = parse(response, false)
+	def parse(response:String, fullContent:Boolean):List[Url] = {
 		try {
-			val array = new JSONTokener(body).nextValue().asInstanceOf[JSONArray]
+			val array = new JSONTokener(response).nextValue().asInstanceOf[JSONArray]
 			(0 until array.length).map { i =>
 				val obj = array.getJSONObject(i)
 				val timestamp = obj.getLong("date")
 				val url = obj.getString("url")
 				val title = obj.getString("title")
-				val body = obj.getString("body")
-				Url.remote(url, timestamp, title).withBody(body)
+
+				val page = Url.remote(url, timestamp, title)
+				if(fullContent) {
+					page.withBody(obj.getString("body"))
+				}
+				page
 			}.toList
 		} catch {
-			case e @ (_:ClassCastException|_:JSONException) => throw new ParseException(body, e)
+			case e @ (_:ClassCastException|_:JSONException) => throw new ParseException(response, e)
 		}
 	}
 
 	def getBody(url:String) = {
 		val response = get(BASE + "page/", Map("url" -> url, "body" -> true.toString))
-		val body = parse(response)(0).body
+		val body = parse(response, true)(0).body
 		assert(body != null)
 		body
 	}
