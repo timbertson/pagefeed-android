@@ -3,6 +3,8 @@ package net.gfxmonk.android.pagefeed
 import _root_.android.app.Activity
 import _root_.android.content.ContentValues
 import _root_.android.database.Cursor
+import _root_.android.view.Menu
+import _root_.android.view.MenuItem
 import _root_.android.net.Uri
 import _root_.android.os.Bundle
 import _root_.android.util.Log
@@ -36,6 +38,31 @@ class ViewPost extends Activity {
 	override def onStop() = {
 		super.onStop()
 		saveScrollPosition()
+	}
+
+	override def onCreateOptionsMenu(menu:Menu) = {
+		getMenuInflater().inflate(R.menu.url_context_menu, menu)
+		true
+	}
+
+	override def onOptionsItemSelected(item:MenuItem):Boolean = {
+		//TODO: split out "UrlActions"
+		item.getItemId() match {
+			case R.id.delete_item => {
+				/*openItemInBrowser(url)*/
+				true
+			}
+			case R.id.share_item => {
+				/*shareItem(url)*/
+				true
+			}
+			case R.id.open_in_browser => {
+				/*deleteItem(url)*/
+				true
+			}
+			case _ =>
+				super.onContextItemSelected(item)
+		}
 	}
 
 	private def saveScrollPosition() = {

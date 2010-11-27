@@ -164,9 +164,18 @@ class MainActivity extends ListActivity {
 
 	override def onContextItemSelected(item: MenuItem):Boolean = {
 		val info = item.getMenuInfo().asInstanceOf[AdapterContextMenuInfo]
+		val url = itemAt(info.position)
 		item.getItemId() match {
 			case R.id.delete_item => {
-				deleteItemAt(info.position)
+				openItemInBrowser(url)
+				true
+			}
+			case R.id.share_item => {
+				shareItem(url)
+				true
+			}
+			case R.id.open_in_browser => {
+				deleteItem(url)
 				true
 			}
 			case _ =>
@@ -212,10 +221,16 @@ class MainActivity extends ListActivity {
 		cursor.getString(UrlStore.indexOf(Contract.Data.URL))
 	}
 
-	private def deleteItemAt(position: Int) = {
-		Util.info("deleting URL: " + cursor.getString(UrlStore.indexOf(Contract.Data.URL)))
-		urlStore.markDeleted(itemAt(position))
+	private def deleteItem(url: String) = {
+		urlStore.markDeleted(url)
 		refresh()
+	}
+
+	private def shareItem(url: String) = {
+		val intent = new Intent(Intent.ACTION_SEND)
+		intent.putExtra(Intent.EXTRA_TEXT, url)
+		intent.setType("text/plain")
+		startActivity(Intent.createChooser(intent, "Share Link:"))
 	}
 
 	private def refresh() = {
@@ -238,14 +253,27 @@ class MainActivity extends ListActivity {
 		broadcastReceiver = null
 	}
 
-	override def onListItemClick(list: ListView, view: View, position: Int, id: Long) = {
-		var url = itemAt(position)
-		/*Util.info("launching URL: " + url))*/
-		Util.info("showing item view: " + url)
+	private def openItemInBrowser(url:String) = {
+		Util.info("launching URL: " + url)
+		val intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url))
+		startActivity(intent)
+	}
+
+	private def openItemInViewer(url: String) = {
+		Util.info("showing item viewer for: " + url)
 		val intent = new Intent(Intent.ACTION_VIEW, Contract.ContentUri.forPage(url))
 		intent.setClass(this, classOf[ViewPost]);
-		activeSelection.set(position)
 		startActivity(intent)
+	}
+
+	override def onListItemClick(list: ListView, view: View, position: Int, id: Long) = {
+		val url = Url.fromCursorRow(cursor, position)
+		if(url.hasBody) {
+			openItemInViewer(url.url)
+		} else {
+			openItemInBrowser(url.url)
+		}
+		activeSelection.set(position)
 	}
 
 	override def onStop() = {

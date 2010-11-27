@@ -22,14 +22,16 @@ public final class R {
         public static final int ring=0x7f020005;
     }
     public static final class id {
-        public static final int delete_item=0x7f08000c;
+        public static final int delete_item=0x7f08000e;
         public static final int itemText=0x7f080000;
         public static final int last_sync=0x7f080009;
+        public static final int open_in_browser=0x7f08000c;
         public static final int post_flip=0x7f080001;
         public static final int post_view_container=0x7f080002;
         public static final int post_view_loading=0x7f080004;
         public static final int post_view_text=0x7f080003;
         public static final int scroll_progress=0x7f080008;
+        public static final int share_item=0x7f08000d;
         public static final int sync_now=0x7f08000a;
         public static final int sync_settings=0x7f08000b;
         public static final int sync_state=0x7f080005;

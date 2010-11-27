@@ -116,7 +116,6 @@ class UrlStore (context: Context) {
 		Util.info("querying for uri " + Contract.ContentUri.PAGES)
 		new UrlSet(db.query(Contract.ContentUri.PAGES, ATTRIBUTES, cond, Array(), Contract.Data.ID))
 	}
-
 }
 
 class UrlSet(var cursor:Cursor) {
