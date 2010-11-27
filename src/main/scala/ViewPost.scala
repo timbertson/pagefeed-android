@@ -45,7 +45,10 @@ class ViewPost extends Activity {
 			var values = new ContentValues()
 			Log.d(TAG, "Updating scroll ratio to " + scrollRatio + " for post " + getIntent().getData())
 			values.put(Contract.Data.SCROLL, scrollRatio)
-			getContentResolver().update(getIntent().getData(), values, null, null)
+			val itemUri = getIntent().getData()
+			getContentResolver().update(itemUri, values, null, null)
+			//TODO: use content observer to make use of this:
+			getContentResolver().notifyChange(itemUri, null)
 		}
 	}
 
@@ -65,7 +68,7 @@ class ViewPost extends Activity {
 
 		val html =
 		  "<html><head><style type=\"text/css\">body { background-color: #201c19 !important; color: white !important; } a { color: #ddf !important; } h1 h2 h3 { font-size:1em !important; }</style></head><body>" +
-			"<h1>" + title + "</h1><br />" + body + "</body></html>"
+			"<h2>" + title + "</h2><br />" + body + "</body></html>"
 
 		webView.loadData(html, "text/html", "utf-8")
 

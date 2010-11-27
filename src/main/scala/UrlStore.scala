@@ -11,7 +11,7 @@ object UrlStore {
 	private val Data = Contract.Data
 	val TRUE = 1
 	val FALSE = 0
-	val ATTRIBUTES = Array(Data.ID, Data.URL, Data.ACTIVE, Data.DIRTY, Data.TITLE)
+	val ATTRIBUTES = Array(Data.ID, Data.URL, Data.ACTIVE, Data.DIRTY, Data.TITLE, Data.BODY, Data.SCROLL)
 	def indexOf(attr:String) = {
 		val index = UrlStore.ATTRIBUTES.indexOf(attr)
 		if(index < 0) { throw new RuntimeException("no such field: " + attr) }

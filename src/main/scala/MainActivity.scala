@@ -4,9 +4,11 @@ import _root_.android.app.ListActivity
 import _root_.android.content.Intent
 import _root_.android.content.IntentFilter
 import _root_.android.net.Uri
+import _root_.android.text.TextUtils
 import _root_.android.os.Bundle
 import _root_.android.view.View
 import _root_.android.view.Menu
+import _root_.android.widget.ProgressBar
 import _root_.android.widget.TextView
 import _root_.android.widget.ListView
 import _root_.android.widget.SimpleCursorAdapter
@@ -89,33 +91,48 @@ class MainActivity extends ListActivity {
 			this,
 			R.layout.url_item,
 			cursor,
-			Array(Contract.Data.URL, Contract.Data.DIRTY, Contract.Data.TITLE),
-			Array(R.id.url, R.id.sync_state, R.id.title)
+			Array(Contract.Data.URL, Contract.Data.DIRTY, Contract.Data.TITLE, Contract.Data.SCROLL),
+			Array(R.id.url, R.id.sync_state, R.id.title, R.id.scroll_progress)
 		)
 		adapter.setViewBinder(new SimpleCursorAdapter.ViewBinder() {
 			var dirtyIndex = UrlStore.indexOf(Contract.Data.DIRTY)
 			var titleIndex = UrlStore.indexOf(Contract.Data.TITLE)
+			var bodyIndex = UrlStore.indexOf(Contract.Data.BODY)
+			var progressIndex = UrlStore.indexOf(Contract.Data.SCROLL)
 			override def setViewValue(view: View, cursor: Cursor, columnIndex: Int):Boolean = {
-				if(columnIndex == dirtyIndex) {
-						val dirtyIndicator = view.asInstanceOf[View]
-						val dirty = cursor.getInt(dirtyIndex) > 0
-						val bg = if (dirty) R.drawable.ring else R.drawable.circle
-						dirtyIndicator.setBackgroundResource(bg)
-						true
-				} else if(columnIndex == titleIndex) {
+				if(columnIndex == dirtyIndex)
+				{
+					val dirtyIndicator = view.asInstanceOf[View]
+					val dirty = cursor.getInt(dirtyIndex) > 0
+					val body = !TextUtils.isEmpty(cursor.getString(bodyIndex))
+					val bg = Tuple(dirty, body) match {
+						case (true, _) => R.drawable.ring
+						case (false, false) => R.drawable.incomplete_circle
+						case (false, true) => R.drawable.circle
+					}
+					dirtyIndicator.setBackgroundResource(bg)
+				}
+
+				else if(columnIndex == progressIndex) {
+					val progress = 100.0 * cursor.getFloat(progressIndex)
+					view.asInstanceOf[ProgressBar].setProgress(progress.toInt)
+				}
+				
+				else if(columnIndex == titleIndex) {
 					val titleView = view.asInstanceOf[TextView]
 					val title = cursor.getString(titleIndex)
 					if(title == null || title.length == 0) {
 						titleView.setVisibility(View.GONE)
-						true
 					} else {
 						titleView.setVisibility(View.VISIBLE)
 						titleView.setText(title)
-						true
 					}
-				} else {
-					false
 				}
+				
+				else {
+					return false
+				}
+				true
 			}
 		})
 		adapter
@@ -160,6 +177,10 @@ class MainActivity extends ListActivity {
 	override def onResume() = {
 		super.onResume()
 		updateSyncDescription()
+		if(cursor != null) {
+			Util.info("cursor requery")
+			cursor.requery()
+		}
 	}
 
 	override def onCreateOptionsMenu(menu:Menu) = {
@@ -199,7 +220,6 @@ class MainActivity extends ListActivity {
 
 	private def refresh() = {
 		Util.info("refreshing list view...")
-		cursor.requery()
 		adapter.notifyDataSetChanged()
 	}
 

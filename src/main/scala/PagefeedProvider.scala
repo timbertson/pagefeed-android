@@ -79,17 +79,7 @@ class UrlDb (context: Context) extends SQLiteOpenHelper(context, UrlDb.name, nul
 
 	def query(projection: Array[String], selection: String, selectionArgs: Array[String], sortOrder: String) = {
 		Util.info("querying data. selection = " + selection + ", projection = " + projection)
-		val cursor = db(_.query(tableName, projection, selection, selectionArgs, null, null, sortOrder))
-		if (cursor.getCount() == 1) {
-			for (val col <- projection) {
-				if(col == "body") {
-					cursor.moveToNext()
-					Util.info("column " + col + " :: " + cursor.getString(cursor.getColumnIndexOrThrow(col)))
-					cursor.moveToPrevious()
-				}
-			}
-		}
-		cursor
+		db(_.query(tableName, projection, selection, selectionArgs, null, null, sortOrder))
 	}
 
 	def queryForUri(uri:Uri, projection: Array[String], selection: String, selectionArgs: Array[String], sortOrder:String) = {
