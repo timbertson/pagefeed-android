@@ -15,42 +15,27 @@
  */
 -->
 <FrameLayout  xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/post_view_container"
-    android:layout_width="fill_parent"
-    android:layout_height="fill_parent">
+	android:id="@+id/post_view_container"
+	android:layout_width="fill_parent"
+	android:layout_height="fill_parent">
 
-    <LinearLayout
-        android:orientation="vertical"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content">
+	<WebView android:id="@+id/post_view_text"
+		android:layout_width="fill_parent"
+		android:layout_height="fill_parent" />
 
+	<LinearLayout
+		android:id="@+id/post_view_loading"
+		android:orientation="vertical"
+		android:layout_width="fill_parent"
+		android:layout_height="fill_parent"
+		android:background="#dd000000"
+		android:padding="5dip">
 
-        <TextView android:id="@+id/post_view_title"
-            android:layout_width="fill_parent"
-            android:layout_height="wrap_content"
-            android:textStyle="bold"
-            android:paddingLeft="8px"
-            android:paddingRight="8px" />
+		<TextView
+			android:layout_width="fill_parent"
+			android:layout_height="wrap_content"
+			android:text="Loading..."
+			/>
 
-        <WebView android:id="@+id/post_view_text"
-            android:layout_width="fill_parent"
-            android:layout_height="fill_parent" />
-
-    </LinearLayout>
-
-    <LinearLayout
-        android:id="@+id/post_view_loading"
-        android:orientation="vertical"
-        android:layout_width="fill_parent"
-        android:layout_height="fill_parent"
-        android:background="#dd000000"
-        android:padding="5dip">
-
-        <TextView
-            android:layout_width="fill_parent"
-            android:layout_height="wrap_content"
-            android:text="Loading..."
-            />
-
-    </LinearLayout>
+	</LinearLayout>
 </FrameLayout>

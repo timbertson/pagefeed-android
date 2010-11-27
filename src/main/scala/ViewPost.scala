@@ -49,30 +49,24 @@ class ViewPost extends Activity {
 		}
 	}
 
-	private def initCursor()
-	{
+	private def initCursor() = {
 		val uri = getIntent().getData()
-		Util.info("ViewPost querying for URI " + uri)
 		cursor = managedQuery(uri, PROJECTION.toArray, null, null, null)
-		Util.info("cursor returned " + cursor.getCount() + " rows");
 		cursor.moveToNext()
 	}
 
-	private def initData() {
+	private def initData() = {
 		var v = LayoutInflater.from(this).inflate(R.layout.post_view_item, null).asInstanceOf[ViewGroup]
 
-		var postTitle = v.findViewById(R.id.post_view_title).asInstanceOf[TextView]
 		webView = v.findViewById(R.id.post_view_text).asInstanceOf[WebView]
 
 		val title = cursor.getString(cursor.getColumnIndexOrThrow(Contract.Data.TITLE))
-		postTitle.setText(title)
+		val body = cursor.getString(cursor.getColumnIndexOrThrow(Contract.Data.BODY))
 
 		val html =
-		  "<html><head><style type=\"text/css\">body { background-color: #201c19; color: white; } a { color: #ddf; }</style></head><body>" +
-		  getBody() +
-		  "</body></html>"
+		  "<html><head><style type=\"text/css\">body { background-color: #201c19 !important; color: white !important; } a { color: #ddf !important; } h1 h2 h3 { font-size:1em !important; }</style></head><body>" +
+			"<h1>" + title + "</h1><br />" + body + "</body></html>"
 
-		Util.info("body = " + getBody());
 		webView.loadData(html, "text/html", "utf-8")
 
 		// add a delegate to resume the scroll position once the WebView renders its content
@@ -84,9 +78,4 @@ class ViewPost extends Activity {
 		//add view to the flipper.
 		flipper.addView(v)
 	}
-
-	private def getBody() {
-		cursor.getString(cursor.getColumnIndexOrThrow(Contract.Data.BODY))
-	}
-
 }
