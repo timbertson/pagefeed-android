@@ -59,7 +59,7 @@ class PagefeedProvider extends ContentProvider {
 
 object UrlDb {
 	val name = "pagefeed"
-	val version = 3
+	val version = 4
 	val tableName = "url"
 }
 
@@ -78,7 +78,7 @@ class UrlDb (context: Context) extends SQLiteOpenHelper(context, UrlDb.name, nul
 	}
 
 	def query(projection: Array[String], selection: String, selectionArgs: Array[String], sortOrder: String) = {
-		Util.info("querying data. selection = " + selection + ", selectionArgs = " + selectionArgs)
+		Util.info("querying data. selection = " + selection + ", projection = " + projection)
 		db(_.query(tableName, projection, selection, selectionArgs, null, null, sortOrder))
 	}
 
@@ -125,6 +125,7 @@ class UrlDb (context: Context) extends SQLiteOpenHelper(context, UrlDb.name, nul
 			", date integer default 0" +
 			""", title text default "" """ +
 			""", body text default null """ +
+			""", scroll number default 0 """ +
 		");")
 	}
 
@@ -132,6 +133,7 @@ class UrlDb (context: Context) extends SQLiteOpenHelper(context, UrlDb.name, nul
 		val transitions = Map(
 			  2 -> """alter table url add column title text default "";"""
 			, 3 -> """alter table url add column body text default null;"""
+			, 4 -> """alter table url add column scroll number default 0;"""
 		)
 		for (i <- (old_version until new_version).map(_+1)) {
 			Util.info("DB::Migrate[" + old_version + "->" + i + "] " + transitions(i))

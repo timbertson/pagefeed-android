@@ -14,7 +14,7 @@ import _root_.android.widget.ViewFlipper
 import net.gfxmonk.android.reader.view.ResumePositionWebViewClient
 
 class ViewPost extends Activity {
-  val PROJECTION = List(Contract.Data.URL, Contract.Data.BODY)
+  val PROJECTION = List(Contract.Data.URL, Contract.Data.BODY, Contract.Data.TITLE, Contract.Data.SCROLL)
 	var flipper: ViewFlipper = null
 	var webViewClient: ResumePositionWebViewClient = null
 	val TAG = "ViewPost"
@@ -64,7 +64,7 @@ class ViewPost extends Activity {
 		var postTitle = v.findViewById(R.id.post_view_title).asInstanceOf[TextView]
 		webView = v.findViewById(R.id.post_view_text).asInstanceOf[WebView]
 
-		val title = cursor.getString(cursor.getColumnIndex(Contract.Data.TITLE))
+		val title = cursor.getString(cursor.getColumnIndexOrThrow(Contract.Data.TITLE))
 		postTitle.setText(title)
 
 		val html =
@@ -72,10 +72,11 @@ class ViewPost extends Activity {
 		  getBody() +
 		  "</body></html>"
 
+		Util.info("body = " + getBody());
 		webView.loadData(html, "text/html", "utf-8")
 
 		// add a delegate to resume the scroll position once the WebView renders its content
-		val scrollPosition = cursor.getFloat(cursor.getColumnIndex(Contract.Data.SCROLL))
+		val scrollPosition = cursor.getFloat(cursor.getColumnIndexOrThrow(Contract.Data.SCROLL))
 
 		webViewClient = new ResumePositionWebViewClient(scrollPosition, webView, v.findViewById(R.id.post_view_loading))
 		webView.setWebViewClient(webViewClient)
@@ -85,7 +86,7 @@ class ViewPost extends Activity {
 	}
 
 	private def getBody() {
-		cursor.getString(cursor.getColumnIndex(Contract.Data.BODY))
+		cursor.getString(cursor.getColumnIndexOrThrow(Contract.Data.BODY))
 	}
 
 }

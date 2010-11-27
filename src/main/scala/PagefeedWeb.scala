@@ -11,6 +11,7 @@ import _root_.org.apache.http.client.HttpClient
 import _root_.org.apache.http.HttpResponse
 import _root_.org.apache.http.HttpException
 import _root_.org.apache.http.client.entity.UrlEncodedFormEntity
+import _root_.org.apache.http.client.utils.URLEncodedUtils
 import _root_.org.apache.http.message.BasicNameValuePair
 import _root_.org.apache.http.NameValuePair
 import _root_.org.json.JSONTokener
@@ -52,8 +53,7 @@ class PagefeedWeb(web: HttpClient) {
 		parse(response)
 	}
 
-	def parse(response:String):List[Url] = parse(response, false)
-	def parse(response:String, fullContent:Boolean):List[Url] = {
+	def parse(response:String):List[Url] = {
 		try {
 			val array = new JSONTokener(response).nextValue().asInstanceOf[JSONArray]
 			(0 until array.length).map { i =>
@@ -61,32 +61,25 @@ class PagefeedWeb(web: HttpClient) {
 				val timestamp = obj.getLong("date")
 				val url = obj.getString("url")
 				val title = obj.getString("title")
-
-				val page = Url.remote(url, timestamp, title)
-				if(fullContent) {
-					page.withBody(obj.getString("body"))
-				}
-				page
+				Url.remote(url, timestamp, title)
 			}.toList
 		} catch {
 			case e @ (_:ClassCastException|_:JSONException) => throw new ParseException(response, e)
 		}
 	}
 
-	def getBody(url:String) = {
-		val response = get(BASE + "page/", Map("url" -> url, "body" -> true.toString))
-		val body = parse(response, true)(0).body
-		assert(body != null)
-		body
+	def getBody(url:String):String = {
+		get(BASE + "page/", Map("url" -> url, "body" -> true.toString))
 	}
 
-	private def get(url:String):String = get(url, Map())
-
-	private def get(url:String, params:Map[String,String]) = {
-		Util.info("GETting: " + url)
+	private def get(url:String):String = {
 		val req = new HttpGet(url)
-		req.setParams(makeParamsForGet(params))
 		body(web.execute(req))
+	}
+
+	private def get(url:String, params:Map[String,String]):String = {
+		Util.info("GETting: " + url + " with params: " + params)
+		get(url + "?" + makeParamsForGet(params))
 	}
 
 	private def post(url:String, params:Map[String,String]):String = {
@@ -100,15 +93,17 @@ class PagefeedWeb(web: HttpClient) {
 
 	// honestly... who needs two different param formulations for GET and POST?
 	private def makeParamsForPost(params:Map[String,String]) = {
-		val paramList = new java.util.ArrayList[NameValuePair]()
-		params.foreach { case (k,v) => paramList.add(new BasicNameValuePair(k,v)) }
-		new UrlEncodedFormEntity(paramList)
+		new UrlEncodedFormEntity(makeParamList(params))
 	}
 
-	private def makeParamsForGet(params:Map[String,String]) = {
-		val paramObject = new BasicHttpParams()
-		params.foreach { case (k,v) => paramObject.setParameter(k,v) }
-		paramObject
+	private def makeParamsForGet(params:Map[String,String]):String = {
+		URLEncodedUtils.format(makeParamList(params), "UTF-8")
+	}
+
+	private def makeParamList(params:Map[String,String]) = {
+		val paramList = new java.util.ArrayList[NameValuePair]()
+		params.foreach { case (k,v) => paramList.add(new BasicNameValuePair(k,v)) }
+		paramList
 	}
 
 	private def body(result: HttpResponse):String = {

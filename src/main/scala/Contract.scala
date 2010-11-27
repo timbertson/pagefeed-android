@@ -1,4 +1,6 @@
 package net.gfxmonk.android.pagefeed
+import _root_.android.database.SQLException
+import _root_.android.database.Cursor
 import _root_.android.net.Uri
 
 object Contract {

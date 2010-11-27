@@ -105,10 +105,10 @@ class SyncAdapter(context: Context, autoInitialize: Boolean)
 
 	private def shouldDoFullSync:Boolean = {
 		return true
-		// val connectionManager = context.getSystemService(Context.CONNECTIVITY_SERVICE).asInstanceOf[ConnectivityManager]
-		// //TODO: add user pref to override this logic
-		// val isOnWifi = connectionManager.getActiveNetworkInfo().getType() == ConnectivityManager.TYPE_WIFI
-		// isOnWifi
+		val connectionManager = context.getSystemService(Context.CONNECTIVITY_SERVICE).asInstanceOf[ConnectivityManager]
+		//TODO: add user pref to override this logic
+		val isOnWifi = connectionManager.getActiveNetworkInfo().getType() == ConnectivityManager.TYPE_WIFI
+		return isOnWifi
 	}
 
 	private def updateTimestamp(ctx:Context, newTimestamp:Long) = {
