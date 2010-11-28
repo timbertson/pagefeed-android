@@ -25,6 +25,7 @@ public final class R {
         public static final int delete_item=0x7f08000e;
         public static final int itemText=0x7f080000;
         public static final int last_sync=0x7f080009;
+        public static final int load_images=0x7f08000f;
         public static final int open_in_browser=0x7f08000c;
         public static final int post_flip=0x7f080001;
         public static final int post_view_container=0x7f080002;
@@ -51,6 +52,7 @@ public final class R {
     public static final class menu {
         public static final int main_menu=0x7f070000;
         public static final int url_context_menu=0x7f070001;
+        public static final int view_post_menu=0x7f070002;
     }
     public static final class string {
         public static final int app_name=0x7f060000;

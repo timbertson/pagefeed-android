@@ -13,6 +13,7 @@ import _root_.android.view.ViewGroup
 import _root_.android.webkit.WebView
 import _root_.android.widget.TextView
 import _root_.android.widget.ViewFlipper
+import _root_.android.webkit.WebSettings
 import net.gfxmonk.android.reader.view.ResumePositionWebViewClient
 
 class ViewPost extends Activity {
@@ -42,16 +43,29 @@ class ViewPost extends Activity {
 
 	override def onCreateOptionsMenu(menu:Menu) = {
 		getMenuInflater().inflate(R.menu.url_context_menu, menu)
+		getMenuInflater().inflate(R.menu.view_post_menu, menu)
 		true
 	}
 
 	override def onOptionsItemSelected(item:MenuItem):Boolean = {
 		val itemId = item.getItemId()
+		if (itemId == R.id.load_images) {
+			useNetwork()
+			return true
+		}
 		val handled = new UrlActions(this).handleMenuItem(item, cursor.getString(cursor.getColumnIndexOrThrow(Contract.Data.URL)))
 		if (itemId == R.id.delete_item) {
 			finish()
 		}
 		handled
+	}
+
+	def useNetwork() = {
+		webView.getSettings().setCacheMode(WebSettings.LOAD_CACHE_ELSE_NETWORK);
+	}
+
+	def disableNetworkUse() = {
+		webView.getSettings().setCacheMode(WebSettings.LOAD_CACHE_ONLY);
 	}
 
 	private def saveScrollPosition() = {
@@ -93,6 +107,7 @@ class ViewPost extends Activity {
 
 		webViewClient = new ResumePositionWebViewClient(scrollPosition, webView, v.findViewById(R.id.post_view_loading), this)
 		webView.setWebViewClient(webViewClient)
+		disableNetworkUse();
 
 		//add view to the flipper.
 		flipper.addView(v)
