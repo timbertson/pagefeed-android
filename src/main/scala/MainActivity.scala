@@ -4,6 +4,8 @@ import _root_.android.app.ListActivity
 import _root_.android.content.Intent
 import _root_.android.content.IntentFilter
 import _root_.android.net.Uri
+import _root_.android.os.Handler
+import _root_.android.os.Message
 import _root_.android.text.TextUtils
 import _root_.android.os.Bundle
 import _root_.android.view.View
@@ -17,6 +19,7 @@ import _root_.android.graphics.drawable.shapes.OvalShape
 import _root_.android.graphics.drawable.ShapeDrawable
 import _root_.android.content.Context
 import _root_.android.database.Cursor
+import _root_.android.database.ContentObserver
 import _root_.android.widget.ResourceCursorAdapter
 import _root_.android.view.ContextMenu
 import _root_.android.view.MenuItem
@@ -39,6 +42,7 @@ class MainActivity extends ListActivity {
 	var syncDescriptionView:TextView = null
 	var activeSelection = new Selection()
 	var actions = new UrlActions(this)
+	var contentObserver:ContentObserver = null
 
 	override def onCreate(bundle:Bundle) = {
 		super.onCreate(bundle)
@@ -95,6 +99,15 @@ class MainActivity extends ListActivity {
 			Array(Contract.Data.URL, Contract.Data.DIRTY, Contract.Data.TITLE, Contract.Data.SCROLL),
 			Array(R.id.url, R.id.sync_state, R.id.title, R.id.scroll_progress)
 		)
+
+		contentObserver = new PagefeedContentObserver(new Handler() {
+			override def handleMessage(msg: Message) {
+				refresh()
+			}
+		})
+
+		getContentResolver().registerContentObserver(Contract.ContentUri.BASE, true, contentObserver)
+
 		adapter.setViewBinder(new SimpleCursorAdapter.ViewBinder() {
 			var dirtyIndex = UrlStore.indexOf(Contract.Data.DIRTY)
 			var titleIndex = UrlStore.indexOf(Contract.Data.TITLE)
@@ -119,6 +132,7 @@ class MainActivity extends ListActivity {
 					val body = !TextUtils.isEmpty(cursor.getString(bodyIndex))
 					if(body) {
 						val progress = 100.0 * cursor.getFloat(progressIndex)
+						Util.info("view binding progress bar to value " + progress)
 						progressBarView.setProgress(progress.toInt)
 						progressBarView.setVisibility(View.VISIBLE)
 					} else {
@@ -219,8 +233,9 @@ class MainActivity extends ListActivity {
 		cursor.getString(UrlStore.indexOf(Contract.Data.URL))
 	}
 
-	private def refresh() = {
+	def refresh() = {
 		Util.info("refreshing list view...")
+		cursor.requery()
 		adapter.notifyDataSetChanged()
 	}
 
@@ -258,7 +273,15 @@ class MainActivity extends ListActivity {
 
 	override def onStop() = {
 		super.onStop()
+		getContentResolver.unregisterContentObserver(contentObserver)
 		stopListeningForSync()
+	}
+
+	private class PagefeedContentObserver(handler:Handler) extends ContentObserver(handler) {
+		override def onChange(selfChange:Boolean) = {
+			super.onChange(selfChange)
+			handler.sendMessage(Message.obtain(handler))
+		}
 	}
 }
 

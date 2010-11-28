@@ -40,16 +40,28 @@ class PagefeedProvider extends ContentProvider {
 		}
 	}
 
-	override def insert(uri:Uri, values:ContentValues) = db.insert(uri, values)
+	override def insert(uri:Uri, values:ContentValues):Uri = {
+		val inserted = db.insert(uri, values)
+		notifyChange(uri)
+		return inserted
+	}
 
 	override def delete(uri:Uri, selection: String, selectionArgs: Array[String]): Int = {
 		assert(selection == null && selectionArgs == null)
-		db.delete(uri)
+		val deleted = db.delete(uri)
+		notifyChange(uri)
+		return deleted
 	}
 
 	override def update(uri:Uri, values:ContentValues, selection: String, selectionArgs: Array[String]): Int = {
 		assert(selection == null && selectionArgs == null)
-		db.update(uri, values)
+		val updated = db.update(uri, values)
+		notifyChange(uri)
+		return updated
+	}
+
+	private def notifyChange(uri:Uri) = {
+		getContext().getContentResolver().notifyChange(uri, null)
 	}
 }
 

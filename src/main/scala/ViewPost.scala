@@ -77,8 +77,6 @@ class ViewPost extends Activity {
 			values.put(Contract.Data.SCROLL, scrollRatio)
 			val itemUri = getIntent().getData()
 			getContentResolver().update(itemUri, values, null, null)
-			//TODO: use content observer to make use of this:
-			getContentResolver().notifyChange(itemUri, null)
 		}
 	}
 

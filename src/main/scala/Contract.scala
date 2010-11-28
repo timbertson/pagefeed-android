@@ -19,7 +19,7 @@ object Contract {
 	}
 
 	object ContentUri {
-		private val BASE = Uri.parse("content://" + AUTHORITY + "/")
+		val BASE = Uri.parse("content://" + AUTHORITY + "/")
 		val PAGES = BASE.buildUpon().appendPath("pages").build()
 
 		private val PAGE = "page"
