@@ -103,7 +103,8 @@ class UrlStore (context: Context) {
 			v match {
 				case v:String => values.put(k, v)
 				case v:Int => values.put(k, v)
-				case v => throw new RuntimeException("invalid data type!" + v)
+				case null => ()
+				case v => throw new RuntimeException("invalid data type! " + v)
 			}
 		}
 		db.update(contentUri, values, null, null)
