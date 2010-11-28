@@ -38,6 +38,7 @@ class MainActivity extends ListActivity {
 	var broadcastReceiver:CallbackReceiver = null
 	var syncDescriptionView:TextView = null
 	var activeSelection = new Selection()
+	var actions = new UrlActions(this)
 
 	override def onCreate(bundle:Bundle) = {
 		super.onCreate(bundle)
@@ -165,22 +166,12 @@ class MainActivity extends ListActivity {
 	override def onContextItemSelected(item: MenuItem):Boolean = {
 		val info = item.getMenuInfo().asInstanceOf[AdapterContextMenuInfo]
 		val url = itemAt(info.position)
-		item.getItemId() match {
-			case R.id.delete_item => {
-				openItemInBrowser(url)
-				true
-			}
-			case R.id.share_item => {
-				shareItem(url)
-				true
-			}
-			case R.id.open_in_browser => {
-				deleteItem(url)
-				true
-			}
-			case _ =>
-				super.onContextItemSelected(item)
+		val handled = actions.handleMenuItem(item, url)
+		val itemId = item.getItemId()
+		if (itemId == R.id.delete_item) {
+			refresh()
 		}
+		handled
 	}
 
 	override def onResume() = {
@@ -221,18 +212,6 @@ class MainActivity extends ListActivity {
 		cursor.getString(UrlStore.indexOf(Contract.Data.URL))
 	}
 
-	private def deleteItem(url: String) = {
-		urlStore.markDeleted(url)
-		refresh()
-	}
-
-	private def shareItem(url: String) = {
-		val intent = new Intent(Intent.ACTION_SEND)
-		intent.putExtra(Intent.EXTRA_TEXT, url)
-		intent.setType("text/plain")
-		startActivity(Intent.createChooser(intent, "Share Link:"))
-	}
-
 	private def refresh() = {
 		Util.info("refreshing list view...")
 		adapter.notifyDataSetChanged()
@@ -253,12 +232,6 @@ class MainActivity extends ListActivity {
 		broadcastReceiver = null
 	}
 
-	private def openItemInBrowser(url:String) = {
-		Util.info("launching URL: " + url)
-		val intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url))
-		startActivity(intent)
-	}
-
 	private def openItemInViewer(url: String) = {
 		Util.info("showing item viewer for: " + url)
 		val intent = new Intent(Intent.ACTION_VIEW, Contract.ContentUri.forPage(url))
@@ -271,7 +244,7 @@ class MainActivity extends ListActivity {
 		if(url.hasBody) {
 			openItemInViewer(url.url)
 		} else {
-			openItemInBrowser(url.url)
+			actions.openItemInBrowser(url.url)
 		}
 		activeSelection.set(position)
 	}

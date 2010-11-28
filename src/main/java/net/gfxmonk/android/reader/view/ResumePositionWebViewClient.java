@@ -5,20 +5,25 @@ import android.util.Log;
 import android.view.View;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import android.content.Context;
+import android.net.Uri;
+import android.content.Intent;
 
 public class ResumePositionWebViewClient extends WebViewClient implements WebView.PictureListener {
 	private float scrollRatio;
 	private WebView webView;
 	private View loadingView;
+	private Context context;
 	private State state;
 	private static final String TAG = "WebViewClient";
 
 	private enum State { LOADING, LOADED, FINISHED };
 
-	public ResumePositionWebViewClient(float scrollRatio, WebView webView, View loadingView) {
+	public ResumePositionWebViewClient(float scrollRatio, WebView webView, View loadingView, Context context) {
 		this.scrollRatio = scrollRatio;
 		this.webView = webView;
 		this.loadingView = loadingView;
+		this.context = context;
 		webView.setPictureListener(this);
 		state = State.LOADING;
 	}
@@ -28,6 +33,13 @@ public class ResumePositionWebViewClient extends WebViewClient implements WebVie
 		Log.i(TAG, "showing loading view...");
 		loadingView.setVisibility(View.VISIBLE);
 		state = State.LOADING;
+	}
+
+	@Override
+	public boolean shouldOverrideUrlLoading(WebView view, String url) {
+		Log.i(TAG, "overriding URL loading");
+		context.startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(url)));
+		return true;
 	}
 
 	@Override

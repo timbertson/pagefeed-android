@@ -46,23 +46,12 @@ class ViewPost extends Activity {
 	}
 
 	override def onOptionsItemSelected(item:MenuItem):Boolean = {
-		//TODO: split out "UrlActions"
-		item.getItemId() match {
-			case R.id.delete_item => {
-				/*openItemInBrowser(url)*/
-				true
-			}
-			case R.id.share_item => {
-				/*shareItem(url)*/
-				true
-			}
-			case R.id.open_in_browser => {
-				/*deleteItem(url)*/
-				true
-			}
-			case _ =>
-				super.onContextItemSelected(item)
+		val itemId = item.getItemId()
+		val handled = new UrlActions(this).handleMenuItem(item, cursor.getString(cursor.getColumnIndexOrThrow(Contract.Data.URL)))
+		if (itemId == R.id.delete_item) {
+			finish()
 		}
+		handled
 	}
 
 	private def saveScrollPosition() = {
@@ -102,7 +91,7 @@ class ViewPost extends Activity {
 		// add a delegate to resume the scroll position once the WebView renders its content
 		val scrollPosition = cursor.getFloat(cursor.getColumnIndexOrThrow(Contract.Data.SCROLL))
 
-		webViewClient = new ResumePositionWebViewClient(scrollPosition, webView, v.findViewById(R.id.post_view_loading))
+		webViewClient = new ResumePositionWebViewClient(scrollPosition, webView, v.findViewById(R.id.post_view_loading), this)
 		webView.setWebViewClient(webViewClient)
 
 		//add view to the flipper.
