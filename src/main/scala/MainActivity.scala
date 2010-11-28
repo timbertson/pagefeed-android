@@ -115,8 +115,15 @@ class MainActivity extends ListActivity {
 				}
 
 				else if(columnIndex == progressIndex) {
-					val progress = 100.0 * cursor.getFloat(progressIndex)
-					view.asInstanceOf[ProgressBar].setProgress(progress.toInt)
+					val progressBarView = view.asInstanceOf[ProgressBar]
+					val body = !TextUtils.isEmpty(cursor.getString(bodyIndex))
+					if(body) {
+						val progress = 100.0 * cursor.getFloat(progressIndex)
+						progressBarView.setProgress(progress.toInt)
+						progressBarView.setVisibility(View.VISIBLE)
+					} else {
+						progressBarView.setVisibility(View.GONE)
+					}
 				}
 				
 				else if(columnIndex == titleIndex) {
