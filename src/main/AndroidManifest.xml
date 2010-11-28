@@ -43,7 +43,7 @@
 		<service
 			android:name=".sync.SyncAdapterService"
 			android:exported="true"
-			android:process=":contacts">
+			android:process=":sync">
 			<intent-filter>
 				<action android:name="android.content.SyncAdapter" />
 			</intent-filter>
