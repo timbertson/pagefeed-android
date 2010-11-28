@@ -18,7 +18,13 @@ class Sync (store: UrlStore, web: HttpClient) {
 
 	def downloadPageContents() = {
 		for (page <- store.emptyPages()) {
-			populateBody(page)
+			try {
+				populateBody(page)
+			} catch {
+				case e:NotFoundException => {
+					Util.info("404 received while fetching the body of " + page.url)
+				}
+			}
 		}
 	}
 
@@ -35,9 +41,7 @@ class Sync (store: UrlStore, web: HttpClient) {
 	private def processRemoteChanges(summary:SyncSummary):Unit = {
 		val remoteUrlObjects:List[Url] = pagefeed.documents().toList
 		val remoteUrls = remoteUrlObjects.map(_.url)
-		Log.d("pagefeed", "remote urls are: " + remoteUrlObjects.mkString(", "))
 		val localUrlObjects = store.all().toList
-		Log.d("pagefeed", "local urls are: " + localUrlObjects.mkString(", "))
 		val localUrlMap = Map[String,Url]((localUrlObjects.map(u => u.url -> u)):_*)
 
 		for (remoteUrl <- remoteUrlObjects) {

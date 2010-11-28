@@ -69,7 +69,7 @@ class PagefeedWeb(web: HttpClient) {
 	}
 
 	def getBody(url:String):String = {
-		get(BASE + "page/", Map("url" -> url, "body" -> true.toString))
+		get(BASE + "page/", Map("url" -> url))
 	}
 
 	private def get(url:String):String = {

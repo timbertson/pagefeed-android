@@ -28,7 +28,7 @@ class UrlStore (context: Context) {
 	}
 
 	def emptyPages() = {
-		get(BODY + """ is null or """ + BODY + """ = "" """)
+		get(ACTIVE + " = 1 AND (" + BODY + """ is null or """ + BODY + """ = "") """)
 	}
 
 	def db = {
