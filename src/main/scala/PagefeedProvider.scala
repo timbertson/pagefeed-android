@@ -31,7 +31,6 @@ class PagefeedProvider extends ContentProvider {
 	}
 
 	override def query(uri:Uri, projection: Array[String], selection: String, selectionArgs: Array[String], sortOrder: String) = {
-		Util.info("query running")
 		if(uri == Contract.ContentUri.PAGES) {
 			db.query(projection, selection, selectionArgs, sortOrder)
 		}
@@ -90,7 +89,6 @@ class UrlDb (context: Context) extends SQLiteOpenHelper(context, UrlDb.name, nul
 	}
 
 	def query(projection: Array[String], selection: String, selectionArgs: Array[String], sortOrder: String) = {
-		Util.info("querying data. selection = " + selection + ", projection = " + projection)
 		db(_.query(tableName, projection, selection, selectionArgs, null, null, sortOrder))
 	}
 

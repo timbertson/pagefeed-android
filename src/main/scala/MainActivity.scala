@@ -132,7 +132,6 @@ class MainActivity extends ListActivity {
 					val body = !TextUtils.isEmpty(cursor.getString(bodyIndex))
 					if(body) {
 						val progress = 100.0 * cursor.getFloat(progressIndex)
-						Util.info("view binding progress bar to value " + progress)
 						progressBarView.setProgress(progress.toInt)
 						progressBarView.setVisibility(View.VISIBLE)
 					} else {
@@ -199,8 +198,7 @@ class MainActivity extends ListActivity {
 		super.onResume()
 		updateSyncDescription()
 		if(cursor != null) {
-			Util.info("cursor requery")
-			cursor.requery()
+			refresh()
 		}
 	}
 
@@ -255,7 +253,6 @@ class MainActivity extends ListActivity {
 	}
 
 	private def openItemInViewer(url: String) = {
-		Util.info("showing item viewer for: " + url)
 		val intent = new Intent(Intent.ACTION_VIEW, Contract.ContentUri.forPage(url))
 		intent.setClass(this, classOf[ViewPost]);
 		startActivity(intent)

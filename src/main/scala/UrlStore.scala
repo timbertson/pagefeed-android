@@ -23,8 +23,6 @@ class UrlStore (context: Context) {
 	import UrlStore._
 	import Contract.Data._
 
-	Util.info("UrlStore: created")
-
 	def active() = {
 		get(ACTIVE + " = 1")
 	}
@@ -61,7 +59,6 @@ class UrlStore (context: Context) {
 
 	def hasActive(u:String) = {
 		val cursor = db.query(Contract.ContentUri.forPage(u), List(ID).toArray, ACTIVE + " = 1", null, null)
-		Util.info("db has " + cursor.getCount() + " items equal to " + u)
 		val result = cursor.getCount() > 0
 		cursor.close()
 		result
@@ -113,7 +110,6 @@ class UrlStore (context: Context) {
 	}
 
 	private def get(cond: String) = {
-		Util.info("querying for uri " + Contract.ContentUri.PAGES)
 		new UrlSet(db.query(Contract.ContentUri.PAGES, ATTRIBUTES, cond, Array(), Contract.Data.ID))
 	}
 }
@@ -121,8 +117,6 @@ class UrlStore (context: Context) {
 class UrlSet(var cursor:Cursor) {
 	import UrlStore._
 	import Contract.Data._
-	Util.info("created UrlSet from cursor with " + cursor + " cursor")
-	Util.info("created UrlSet from cursor with " + cursor.getCount() + " rows")
 
 	private def elements = {
 		val columnMap = Map[String,Int]()

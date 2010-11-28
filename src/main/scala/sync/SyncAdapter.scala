@@ -81,7 +81,6 @@ class SyncAdapter(context: Context, autoInitialize: Boolean)
 				}
 			}
 			Util.info("Sync: authenticated OK")
-
 			val urlStore = new UrlStore(context)
 			val sync = new Sync(urlStore, client)
 			val lastTimestamp = Util.prefLong(context, SyncProgress.PREFERENCE_LAST_DOCTIME, 0)

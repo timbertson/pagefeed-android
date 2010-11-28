@@ -18,7 +18,6 @@ class Sync (store: UrlStore, web: HttpClient) {
 
 	def downloadPageContents() = {
 		for (page <- store.emptyPages()) {
-			Util.info("populating body for url: " + page.url)
 			populateBody(page)
 		}
 	}
@@ -79,6 +78,7 @@ class Sync (store: UrlStore, web: HttpClient) {
 	}
 
 	private def populateBody(item: Url) = {
+		Util.info("populating body for url: " + item)
 		val body = pagefeed.getBody(item.url)
 		updateBody(item, body)
 	}

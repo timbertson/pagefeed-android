@@ -73,12 +73,12 @@ class PagefeedWeb(web: HttpClient) {
 	}
 
 	private def get(url:String):String = {
+		Util.info("GETting: " + url)
 		val req = new HttpGet(url)
 		body(web.execute(req))
 	}
 
 	private def get(url:String, params:Map[String,String]):String = {
-		Util.info("GETting: " + url + " with params: " + params)
 		get(url + "?" + makeParamsForGet(params))
 	}
 
