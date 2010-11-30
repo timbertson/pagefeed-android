@@ -154,13 +154,12 @@ class MainActivity extends ListActivity {
 		adapter
 	}
 
-	private def makeProcressArc(scrollRatio: float):ShapeDrawable = {
+	private def makeProcressArc(scrollRatio: Float):ShapeDrawable = {
 		val fullCircle = 360.0
 		var progressDegrees = fullCircle * scrollRatio
-		Util.info("setting progress degrees to " + progressDegrees)
 		val shape = new ArcShape(270, progressDegrees.toFloat)
 		val arc = new ShapeDrawable(shape)
-		arc.getPaint().setARGB(120, 0, 0, 0)
+		arc.getPaint().setARGB(180, 0, 0, 0)
 		return arc
 	}
 

@@ -30,9 +30,10 @@ public class ResumePositionWebViewClient extends WebViewClient implements WebVie
 
 	@Override
 	public void onLoadResource(WebView view, String url) {
-		Log.i(TAG, "showing loading view...");
-		loadingView.setVisibility(View.VISIBLE);
-		state = State.LOADING;
+		if(state == state.LOADING) {
+			Log.i(TAG, "showing loading view...");
+			loadingView.setVisibility(View.VISIBLE);
+		}
 	}
 
 	@Override

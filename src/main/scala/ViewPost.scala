@@ -3,6 +3,7 @@ package net.gfxmonk.android.pagefeed
 import _root_.android.app.Activity
 import _root_.android.content.ContentValues
 import _root_.android.database.Cursor
+import _root_.android.view.View
 import _root_.android.view.Menu
 import _root_.android.view.MenuItem
 import _root_.android.net.Uri
@@ -37,7 +38,7 @@ class ViewPost extends Activity {
 		initData()
 	}
 
-	override def onStop() = {
+	override def onPause() = {
 		super.onStop()
 		saveScrollPosition()
 	}
@@ -99,13 +100,16 @@ class ViewPost extends Activity {
 		  "<html><head><style type=\"text/css\">body { background-color: #201c19 !important; color: white !important; } a { color: #ddf !important; } h1 h2 h3 { font-size:1em !important; }</style></head><body>" +
 			"<h2>" + title + "</h2><br />" + body + "</body></html>"
 
-		webView.loadData(html, "text/html", "utf-8")
+		val encoding="utf-8"
+		webView.loadDataWithBaseURL(null, html, "text/html", encoding, null)
 
 		// add a delegate to resume the scroll position once the WebView renders its content
 		val scrollPosition = cursor.getFloat(cursor.getColumnIndexOrThrow(Contract.Data.SCROLL))
 
 		webViewClient = new ResumePositionWebViewClient(scrollPosition, webView, v.findViewById(R.id.post_view_loading), this)
 		webView.setWebViewClient(webViewClient)
+		webView.setScrollBarStyle(View.SCROLLBARS_INSIDE_OVERLAY)
+
 		//todo: paramaterise?
 		webView.getSettings().setMinimumFontSize(20)
 		disableNetworkUse();
