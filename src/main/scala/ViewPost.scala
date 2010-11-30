@@ -14,6 +14,7 @@ import _root_.android.webkit.WebView
 import _root_.android.widget.TextView
 import _root_.android.widget.ViewFlipper
 import _root_.android.webkit.WebSettings
+import _root_.android.webkit.WebSettings.ZoomDensity
 import net.gfxmonk.android.reader.view.ResumePositionWebViewClient
 
 class ViewPost extends Activity {
@@ -105,6 +106,8 @@ class ViewPost extends Activity {
 
 		webViewClient = new ResumePositionWebViewClient(scrollPosition, webView, v.findViewById(R.id.post_view_loading), this)
 		webView.setWebViewClient(webViewClient)
+		//todo: paramaterise?
+		webView.getSettings().setMinimumFontSize(20)
 		disableNetworkUse();
 
 		//add view to the flipper.
