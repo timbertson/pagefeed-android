@@ -10,13 +10,14 @@ import _root_.android.text.TextUtils
 import _root_.android.os.Bundle
 import _root_.android.view.View
 import _root_.android.view.Menu
+import _root_.android.graphics.drawable.ShapeDrawable
+import _root_.android.graphics.drawable.shapes.ArcShape
+import _root_.android.graphics.drawable.LayerDrawable
 import _root_.android.widget.ProgressBar
 import _root_.android.widget.TextView
 import _root_.android.widget.ListView
 import _root_.android.widget.SimpleCursorAdapter
 import _root_.android.widget.SimpleAdapter
-import _root_.android.graphics.drawable.shapes.OvalShape
-import _root_.android.graphics.drawable.ShapeDrawable
 import _root_.android.content.Context
 import _root_.android.database.Cursor
 import _root_.android.database.ContentObserver
@@ -96,8 +97,8 @@ class MainActivity extends ListActivity {
 			this,
 			R.layout.url_item,
 			cursor,
-			Array(Contract.Data.URL, Contract.Data.DIRTY, Contract.Data.TITLE, Contract.Data.SCROLL),
-			Array(R.id.url, R.id.sync_state, R.id.title, R.id.scroll_progress)
+			Array(Contract.Data.URL, Contract.Data.DIRTY, Contract.Data.TITLE),
+			Array(R.id.url, R.id.sync_state, R.id.title)
 		)
 
 		contentObserver = new PagefeedContentObserver(new Handler() {
@@ -119,26 +120,20 @@ class MainActivity extends ListActivity {
 					val dirtyIndicator = view.asInstanceOf[View]
 					val dirty = cursor.getInt(dirtyIndex) > 0
 					val body = !TextUtils.isEmpty(cursor.getString(bodyIndex))
-					val bg = Tuple(dirty, body) match {
-						case (true, _) => R.drawable.ring
-						case (false, false) => R.drawable.incomplete_circle
-						case (false, true) => R.drawable.circle
+					Tuple(dirty, body) match {
+						case (true, _) => dirtyIndicator.setBackgroundResource(R.drawable.ring)
+						case (false, false) => dirtyIndicator.setBackgroundResource(R.drawable.incomplete_circle)
+						case (false, true) => {
+							val drawable = getResources().getDrawable(R.drawable.read_progress).asInstanceOf[LayerDrawable]
+							if(body) {
+								val arc = makeProcressArc(cursor.getFloat(progressIndex))
+								drawable.setDrawableByLayerId(R.id.progress_arc, arc)
+							}
+							dirtyIndicator.setBackgroundDrawable(drawable)
+						}
 					}
-					dirtyIndicator.setBackgroundResource(bg)
 				}
 
-				else if(columnIndex == progressIndex) {
-					val progressBarView = view.asInstanceOf[ProgressBar]
-					val body = !TextUtils.isEmpty(cursor.getString(bodyIndex))
-					if(body) {
-						val progress = 100.0 * cursor.getFloat(progressIndex)
-						progressBarView.setProgress(progress.toInt)
-						progressBarView.setVisibility(View.VISIBLE)
-					} else {
-						progressBarView.setVisibility(View.GONE)
-					}
-				}
-				
 				else if(columnIndex == titleIndex) {
 					val titleView = view.asInstanceOf[TextView]
 					val title = cursor.getString(titleIndex)
@@ -157,6 +152,16 @@ class MainActivity extends ListActivity {
 			}
 		})
 		adapter
+	}
+
+	private def makeProcressArc(scrollRatio: float):ShapeDrawable = {
+		val fullCircle = 360.0
+		var progressDegrees = fullCircle * scrollRatio
+		Util.info("setting progress degrees to " + progressDegrees)
+		val shape = new ArcShape(270, progressDegrees.toFloat)
+		val arc = new ShapeDrawable(shape)
+		arc.getPaint().setARGB(120, 0, 0, 0)
+		return arc
 	}
 
 	private def updateSyncDescription() = {
