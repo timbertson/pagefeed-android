@@ -53,13 +53,13 @@ public class ResumePositionWebViewClient extends WebViewClient implements WebVie
 			return;
 		}
 		if (state == State.LOADED) {
-			Log.i(TAG, "hiding loading view, and scrolling to ratio " + scrollRatio + "(" + (int) (scrollRatio * view.getContentHeight()) + "px)");
+			Log.i(TAG, "hiding loading view, and scrolling to ratio " + scrollRatio + "(" + (int) (scrollRatio * view.getContentHeight()) + "px out of " + view.getContentHeight() + ")");
 			loadingView.setVisibility(View.GONE);
 			webView.scrollTo(0, (int) (scrollRatio * webView.getContentHeight()));
 			state = State.FINISHED;
 			webView.setPictureListener(null);
 		} else {
-			Log.d(TAG,	"onNewPicture called while state = " + state);
+			Log.d(TAG, "onNewPicture called while state = " + state);
 		}
 	}
 
@@ -68,9 +68,10 @@ public class ResumePositionWebViewClient extends WebViewClient implements WebVie
 			Log.d(TAG, "Not returning any scroll ratio, as webview state is " + state);
 			return null;
 		}
-		Log.d(TAG, "getting scroll ratio of view " + webView);
 		int scrollPosition = webView.getScrollY();
 		int height = webView.getContentHeight();
-		return (float) scrollPosition / (float) height;
+		Float ratio = (float) scrollPosition / (float) height;
+		Log.d(TAG, "scroll ratio of view " + webView + " is " + ratio + " (" + scrollPosition + " / " + height + ")");
+		return ratio;
 	}
 }
