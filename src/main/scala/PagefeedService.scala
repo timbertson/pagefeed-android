@@ -29,7 +29,11 @@ class PagefeedService extends Service {
 	def has(url:String) = store hasActive url
 
 	def add(uri: String) = {
-		attempt(store.add(uri), "Page added!")
+		val run = {
+			store.add(uri)
+			AccountList.syncNow(this)
+		}
+		attempt(run, "Page added!")
 	}
 
 	def remove(url: String) = {

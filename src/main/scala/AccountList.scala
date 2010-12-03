@@ -28,9 +28,13 @@ object AccountList {
 		Util.toast("sync " + (if(enable) "enabled" else "disabled") + " for " + account.name, ctx)
 	}
 
+	def syncNow(ctx: Context):Boolean = {
+		syncNow(singleEnabledAccount(ctx), ctx)
+	}
+
 	def syncNow(account:Account, ctx: Context):Boolean = {
 		if(account == null) {
-			Util.toast("Error: no appropriate account", ctx)
+			Util.toast("Pagefeed can't sync: no appropriate account", ctx)
 			false
 		} else {
 			ContentResolver.requestSync(account, Contract.AUTHORITY, new Bundle())
