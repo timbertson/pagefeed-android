@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+	<CheckBoxPreference android:key="PREF_ALWAYS_DOWNLOAD_CONTENT"
+		android:title="Download page content"
+		android:summaryOn="Always"
+		android:summaryOff="Only over WIFI"
+		android:defaultValue="false" />
+	<PreferenceScreen android:key="ACCOUNT_SETTINGS"
+		android:title="Account sync settings"
+		android:summary="Change your google account sync settings"
+	/>
+</PreferenceScreen>
+

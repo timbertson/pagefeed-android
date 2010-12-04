@@ -62,5 +62,6 @@ public final class R {
     }
     public static final class xml {
         public static final int syncadapter=0x7f040000;
+        public static final int userpreferences=0x7f040001;
     }
 }

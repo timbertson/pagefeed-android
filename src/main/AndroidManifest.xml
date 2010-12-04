@@ -32,8 +32,8 @@
 			</intent-filter>
 		</activity>
 
-		<activity android:name=".ViewPost">
-		</activity>
+		<activity android:name=".ViewPost"/>
+		<activity android:name=".Preferences"/>
 
 
 		<service android:name="net.gfxmonk.android.pagefeed.PagefeedService" />

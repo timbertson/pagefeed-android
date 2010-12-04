@@ -94,7 +94,7 @@ class SyncAdapter(context: Context, autoInitialize: Boolean)
 			result.stats.numDeletes = syncResult.removed.asInstanceOf[Long]
 			Util.info("sync result is:" + syncResult)
 			if(syncResult.latestDocTime > lastTimestamp) {
-				updateTimestamp(context, syncResult.latestDocTime)
+				updateTimestamp(syncResult.latestDocTime)
 			}
 			success = true
 		} finally {
@@ -102,15 +102,22 @@ class SyncAdapter(context: Context, autoInitialize: Boolean)
 		}
 	}
 
+	private def preferences = {
+		context.getSharedPreferences(classOf[MainActivity].getName(), Context.MODE_PRIVATE)
+	}
+
 	private def shouldDoFullSync:Boolean = {
+		val alwaysDoFullSync = preferences.getBoolean(Preferences.ALWAYS_DOWNLOAD_CONTENT.key, Preferences.ALWAYS_DOWNLOAD_CONTENT.default)
+		if(alwaysDoFullSync) {
+			return true
+		}
 		val connectionManager = context.getSystemService(Context.CONNECTIVITY_SERVICE).asInstanceOf[ConnectivityManager]
-		//TODO: add user pref to override this logic
 		val isOnWifi = connectionManager.getActiveNetworkInfo().getType() == ConnectivityManager.TYPE_WIFI
 		return isOnWifi
 	}
 
-	private def updateTimestamp(ctx:Context, newTimestamp:Long) = {
-		val editor = ctx.getSharedPreferences(classOf[MainActivity].getName(), Context.MODE_PRIVATE).edit()
+	private def updateTimestamp(newTimestamp:Long) = {
+		val editor = preferences.edit()
 		editor.putLong(SyncProgress.PREFERENCE_LAST_DOCTIME, newTimestamp)
 		Util.info("saved pref " + SyncProgress.PREFERENCE_LAST_DOCTIME + " = " + newTimestamp)
 		editor.commit()

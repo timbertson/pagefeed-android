@@ -219,9 +219,7 @@ class MainActivity extends ListActivity {
 				true
 			}
 			case R.id.sync_settings => {
-				val intent = new Intent()
-				intent.setClassName("com.android.providers.subscribedfeeds", "com.android.settings.ManageAccountsSettings")
-				intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+				val intent = new Intent(this, classOf[Preferences])
 				startActivity(intent)
 				true
 			}
