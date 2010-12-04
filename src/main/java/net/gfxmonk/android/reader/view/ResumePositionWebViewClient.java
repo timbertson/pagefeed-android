@@ -69,6 +69,7 @@ public class ResumePositionWebViewClient extends WebViewClient implements WebVie
 			Log.d(TAG, "Not returning any scroll ratio, as webview state is " + state);
 			return null;
 		}
+		webView.computeScroll();
 		int scrollPosition = webView.getScrollY();
 		int height = webView.getContentHeight();
 		float scale = webView.getScale();
