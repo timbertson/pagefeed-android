@@ -1,6 +1,7 @@
 package net.gfxmonk.android.pagefeed
 
 import _root_.android.app.Activity
+import _root_.android.content.Intent
 import _root_.android.content.ContentValues
 import _root_.android.database.Cursor
 import _root_.android.view.View
@@ -35,7 +36,21 @@ class ViewPost extends Activity {
 	override def onStart() = {
 		super.onStart()
 		initCursor()
-		initData()
+		try {
+			initData()
+		} catch {
+			case e:RuntimeException => {
+				Log.e(TAG, "Error initialising ViewPost data", e)
+				Util.toast("Error viewing page.", getApplicationContext())
+				backToMain()
+			}
+		}
+	}
+
+	def backToMain() = {
+		val intent = new Intent(this, classOf[MainActivity])
+		startActivity(intent)
+		finish()
 	}
 
 	override def onPause() = {
@@ -57,7 +72,7 @@ class ViewPost extends Activity {
 		}
 		val handled = new UrlActions(this).handleMenuItem(item, cursor.getString(cursor.getColumnIndexOrThrow(Contract.Data.URL)))
 		if (itemId == R.id.delete_item) {
-			finish()
+			backToMain()
 		}
 		handled
 	}
