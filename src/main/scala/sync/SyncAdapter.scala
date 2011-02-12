@@ -102,12 +102,8 @@ class SyncAdapter(context: Context, autoInitialize: Boolean)
 		}
 	}
 
-	private def preferences = {
-		context.getSharedPreferences(classOf[MainActivity].getName(), Context.MODE_PRIVATE)
-	}
-
 	private def shouldDoFullSync:Boolean = {
-		val alwaysDoFullSync = preferences.getBoolean(Preferences.ALWAYS_DOWNLOAD_CONTENT.key, Preferences.ALWAYS_DOWNLOAD_CONTENT.default)
+		val alwaysDoFullSync = Preferences.get(context, Preferences.ALWAYS_DOWNLOAD_CONTENT)
 		if(alwaysDoFullSync) {
 			return true
 		}
@@ -117,7 +113,7 @@ class SyncAdapter(context: Context, autoInitialize: Boolean)
 	}
 
 	private def updateTimestamp(newTimestamp:Long) = {
-		val editor = preferences.edit()
+		val editor = Preferences(context).edit()
 		editor.putLong(SyncProgress.PREFERENCE_LAST_DOCTIME, newTimestamp)
 		Util.info("saved pref " + SyncProgress.PREFERENCE_LAST_DOCTIME + " = " + newTimestamp)
 		editor.commit()

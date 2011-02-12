@@ -9,36 +9,44 @@ package net.gfxmonk.android.pagefeed;
 
 public final class R {
     public static final class array {
-        public static final int url_actions=0x7f050000;
+        public static final int url_actions=0x7f070000;
     }
     public static final class attr {
     }
     public static final class drawable {
         public static final int app_icon=0x7f020000;
-        public static final int circle=0x7f020001;
-        public static final int incomplete_circle=0x7f020002;
-        public static final int menu_sync=0x7f020003;
-        public static final int notification=0x7f020004;
-        public static final int read_progress=0x7f020005;
-        public static final int ring=0x7f020006;
+        public static final int brightness_menu_icon=0x7f020001;
+        public static final int circle=0x7f020002;
+        public static final int incomplete_circle=0x7f020003;
+        public static final int menu_sync=0x7f020004;
+        public static final int notification=0x7f020005;
+        public static final int read_progress=0x7f020006;
+        public static final int ring=0x7f020007;
     }
     public static final class id {
-        public static final int delete_item=0x7f08000e;
-        public static final int itemText=0x7f080000;
-        public static final int last_sync=0x7f080008;
-        public static final int load_images=0x7f08000f;
-        public static final int open_in_browser=0x7f08000c;
-        public static final int post_flip=0x7f080001;
-        public static final int post_view_container=0x7f080002;
-        public static final int post_view_loading=0x7f080004;
-        public static final int post_view_text=0x7f080003;
-        public static final int progress_arc=0x7f080009;
-        public static final int share_item=0x7f08000d;
-        public static final int sync_now=0x7f08000a;
-        public static final int sync_settings=0x7f08000b;
-        public static final int sync_state=0x7f080005;
-        public static final int title=0x7f080006;
-        public static final int url=0x7f080007;
+        public static final int brightness_slider=0x7f090006;
+        public static final int brightness_slider_container=0x7f090005;
+        public static final int change_brightness=0x7f090012;
+        public static final int delete_item=0x7f090011;
+        public static final int hide_brightness_slider=0x7f090007;
+        public static final int itemText=0x7f090000;
+        public static final int last_sync=0x7f09000b;
+        public static final int open_in_browser=0x7f09000f;
+        public static final int post_flip=0x7f090001;
+        public static final int post_view_container=0x7f090002;
+        public static final int post_view_loading=0x7f090004;
+        public static final int post_view_text=0x7f090003;
+        public static final int progress_arc=0x7f09000c;
+        public static final int share_item=0x7f090010;
+        public static final int sync_now=0x7f09000d;
+        public static final int sync_settings=0x7f09000e;
+        public static final int sync_state=0x7f090008;
+        public static final int title=0x7f090009;
+        public static final int url=0x7f09000a;
+    }
+    public static final class integer {
+        public static final int brightness_range=0x7f060001;
+        public static final int max_brightness=0x7f060000;
     }
     public static final class layout {
         public static final int account_item=0x7f030000;
@@ -51,14 +59,14 @@ public final class R {
         public static final int url_list=0x7f030007;
     }
     public static final class menu {
-        public static final int main_menu=0x7f070000;
-        public static final int url_context_menu=0x7f070001;
-        public static final int view_post_menu=0x7f070002;
+        public static final int main_menu=0x7f080000;
+        public static final int url_context_menu=0x7f080001;
+        public static final int view_post_menu=0x7f080002;
     }
     public static final class string {
-        public static final int app_name=0x7f060000;
-        public static final int select_account=0x7f060001;
-        public static final int sync_running=0x7f060002;
+        public static final int app_name=0x7f050000;
+        public static final int select_account=0x7f050001;
+        public static final int sync_running=0x7f050002;
     }
     public static final class xml {
         public static final int syncadapter=0x7f040000;

@@ -1,7 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
-	<item android:id="@+id/load_images"
-	      android:title="Load Images"
+	<!-- <item android:id="@+id/load_images" -->
+	<!-- 			android:title="Show Images" -->
+	<!-- 			android:icon="@android:drawable/ic_menu_slideshow" -->
+	<!-- /> -->
+	<item android:id="@+id/change_brightness"
+				android:title="Brightness"
+				android:icon="@drawable/brightness_menu_icon"
 	/>
 </menu>
 

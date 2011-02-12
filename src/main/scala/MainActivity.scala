@@ -163,7 +163,8 @@ class MainActivity extends ListActivity {
 		return arc
 	}
 
-	private def updateSyncDescription() = {
+	private def updateSyncDescription() {
+		if(syncDescriptionView == None) return
 		val lastSyncTimeMillis = Util.prefLong(getApplicationContext(), SyncProgress.PREFERENCE_LAST_SYNC, 0)
 		var timeDesc = "unknown"
 		var desc = "last sync: "

@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<resources>
-	<string-array name="url_actions">
-		<item>Remove</item>
-		<item>Keep it</item>
-	</string-array>
-</resources>

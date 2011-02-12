@@ -1,13 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
 	<item android:id="@+id/open_in_browser"
-	      android:title="Open in Browser"
+				android:title="Open in Browser"
+				android:icon="@android:drawable/ic_menu_view"
 	/>
 	<item android:id="@+id/share_item"
-	      android:title="Share URL"
+				android:title="Share URL"
+				android:icon="@android:drawable/ic_menu_share"
 	/>
 	<item android:id="@+id/delete_item"
-	      android:title="Delete"
+				android:title="Delete"
+				android:icon="@android:drawable/ic_menu_delete"
 	/>
 </menu>
 

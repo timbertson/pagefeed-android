@@ -17,6 +17,7 @@
 <FrameLayout  xmlns:android="http://schemas.android.com/apk/res/android"
 	android:id="@+id/post_view_container"
 	android:layout_width="fill_parent"
+	android:background="#FF201c19"
 	android:layout_height="fill_parent">
 
 	<WebView android:id="@+id/post_view_text"
@@ -41,5 +42,33 @@
 			android:max="100"
 			/>
 
+	</LinearLayout>
+
+	<LinearLayout
+		android:id="@+id/brightness_slider_container"
+		android:orientation="horizontal"
+		android:layout_width="fill_parent"
+		android:layout_height="wrap_content"
+		android:background="#99000000"
+		android:paddingTop="10dip"
+		android:paddingBottom="10dip"
+		android:clickable="true"
+		android:visibility="gone"
+		android:weightSum="1"
+		>
+		<SeekBar
+			android:layout_width="0dip"
+			android:layout_height="wrap_content"
+			android:layout_margin="10dip"
+			android:layout_weight="1"
+			android:id="@+id/brightness_slider"
+			android:max="@integer/brightness_range"
+			/>
+		<Button
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:id="@+id/hide_brightness_slider"
+			android:layout_weight="0"
+			android:text=" x " />
 	</LinearLayout>
 </FrameLayout>

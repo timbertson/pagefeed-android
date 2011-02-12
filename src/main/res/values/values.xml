@@ -3,4 +3,10 @@
 	<string name="app_name">PageFeed</string>
 	<string name="select_account">Select a pagefeed account</string>
 	<string name="sync_running">Pagefeed syncing...</string>
+	<integer name="max_brightness">255</integer>
+	<integer name="brightness_range">155</integer>
+	<string-array name="url_actions">
+		<item>Remove</item>
+		<item>Keep it</item>
+	</string-array>
 </resources>
