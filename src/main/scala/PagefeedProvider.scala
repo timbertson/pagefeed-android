@@ -70,7 +70,7 @@ class PagefeedProvider extends ContentProvider {
 
 object UrlDb {
 	val name = "pagefeed"
-	val version = 4
+	val version = 5
 	val tableName = "url"
 }
 
@@ -136,6 +136,7 @@ class UrlDb (context: Context) extends SQLiteOpenHelper(context, UrlDb.name, nul
 			""", title text default "" """ +
 			""", body text default null """ +
 			""", scroll number default 0 """ +
+			""", has_content boolean default 0 """ +
 		");")
 	}
 
@@ -144,6 +145,7 @@ class UrlDb (context: Context) extends SQLiteOpenHelper(context, UrlDb.name, nul
 			  2 -> """alter table url add column title text default "";"""
 			, 3 -> """alter table url add column body text default null;"""
 			, 4 -> """alter table url add column scroll number default 0;"""
+			, 5 -> """alter table url add column has_content boolean default 0;"""
 		)
 		for (i <- (old_version until new_version).map(_+1)) {
 			Util.info("DB::Migrate[" + old_version + "->" + i + "] " + transitions(i))

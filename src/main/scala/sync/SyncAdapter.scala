@@ -89,6 +89,8 @@ class SyncAdapter(context: Context, autoInitialize: Boolean)
 			if (shouldDoFullSync) {
 				Util.info("downloading full page contents")
 				sync.downloadPageContents()
+			} else {
+				Util.info("skipping full content download - not on wifi, and preference not set to always download")
 			}
 			result.stats.numInserts = syncResult.added.asInstanceOf[Long]
 			result.stats.numDeletes = syncResult.removed.asInstanceOf[Long]

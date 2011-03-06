@@ -17,7 +17,7 @@ class Sync (store: UrlStore, web: HttpClient) {
 	}
 
 	def downloadPageContents() = {
-		for (page <- store.emptyPages()) {
+		for (page <- store.pagesWithOnlyRemoteContent()) {
 			try {
 				populateBody(page)
 			} catch {
@@ -116,11 +116,7 @@ class Sync (store: UrlStore, web: HttpClient) {
 	}
 
 	private def updateItem(local: Url, remote: Url):Unit = {
-		if(local.title == remote.title) {
-			return
-		}
-		Util.info("title update: '"+local.title+"' is now '"+remote.title+"'")
-		local.title = remote.title
-		store.update(local)
+		Util.info("processing remote url: " + remote)
+		store.updateIfDifferent(remote, local)
 	}
 }

@@ -11,7 +11,8 @@ class Pagefeed(info: ProjectInfo) extends ParentProject(info) with de.tuxed.code
 	/*lazy val tests = project("tests",  "tests", new TestProject(_), main)*/
 
 	class MainProject(info: ProjectInfo) extends AndroidProject(info) with Defaults with MarketPublish {
-		//val scalatest = "org.scalatest" % "scalatest" % "1.0" % "test"
+		val scalatest = "org.scalatest" % "scalatest" % "1.1" % "test"
+		val mockito = "org.mockito" % "mockito-core" % "1.8.5" % "test"
 		val keyalias = "android"
 		override def compileOrder = CompileOrder.JavaThenScala
 	}

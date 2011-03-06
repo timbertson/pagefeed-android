@@ -11,7 +11,7 @@ object UrlStore {
 	private val Data = Contract.Data
 	val TRUE = 1
 	val FALSE = 0
-	val ATTRIBUTES = Array(Data.ID, Data.URL, Data.ACTIVE, Data.DIRTY, Data.TITLE, Data.BODY, Data.SCROLL)
+	val ATTRIBUTES = Array(Data.ID, Data.URL, Data.ACTIVE, Data.DIRTY, Data.TITLE, Data.BODY, Data.SCROLL, Data.HAS_CONTENT)
 	def indexOf(attr:String) = {
 		val index = UrlStore.ATTRIBUTES.indexOf(attr)
 		if(index < 0) { throw new RuntimeException("no such field: " + attr) }
@@ -27,8 +27,8 @@ class UrlStore (context: Context) {
 		get(ACTIVE + " = 1")
 	}
 
-	def emptyPages() = {
-		get(ACTIVE + " = 1 AND (" + BODY + """ is null or """ + BODY + """ = "") """)
+	def pagesWithOnlyRemoteContent() = {
+		get(ACTIVE + " = 1 AND (" + BODY + " is null or " + BODY + """ = "") AND """ + HAS_CONTENT + " = 1")
 	}
 
 	def db = {
@@ -92,9 +92,19 @@ class UrlStore (context: Context) {
 		db.delete(item.contentUri, null, null)
 	}
 
-	def update(u:Url) {
-		// NOTE: only updates what can change (so far).
-		update(u.contentUri, TITLE -> u.title, BODY -> u.body)
+	def updateIfDifferent(new_url:Url, existing_url:Url):Boolean = {
+		// NOTE: only updates what can change as the result of a JSON payload
+		if(new_url.title == existing_url.title && new_url.has_content == existing_url.has_content) {
+			false
+		} else {
+			Util.info("updating item " + new_url.title)
+			update(new_url)
+			true
+		}
+	}
+
+	def update(u:Url):Unit = {
+		update(u.contentUri, TITLE -> u.title, BODY -> u.body, HAS_CONTENT -> u.has_content)
 	}
 
 	private def update(contentUri:Uri, params:Tuple2[String,Any]*) = {
@@ -103,6 +113,7 @@ class UrlStore (context: Context) {
 			v match {
 				case v:String => values.put(k, v)
 				case v:Int => values.put(k, v)
+				case v:Boolean => values.put(k, v)
 				case null => ()
 				case v => throw new RuntimeException("invalid data type! " + v)
 			}
@@ -130,8 +141,9 @@ class UrlSet(var cursor:Cursor) {
 				var dirty = cursor.getInt(columnMap.get(DIRTY).get) == 1
 				var active = cursor.getInt(columnMap.get(ACTIVE).get) == 1
 				var title = cursor.getString(columnMap.get(TITLE).get)
+				var has_content = cursor.getInt(columnMap.get(HAS_CONTENT).get) == 1
 				cursor.moveToNext()
-				new Url(url, title, dirty, active, 0)
+				new Url(url, title, has_content, dirty, active, 0)
 			}
 		}
 	}

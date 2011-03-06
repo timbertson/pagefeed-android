@@ -1,6 +1,6 @@
-import org.scalatest.Spec
-import org.scalatest.matchers.ShouldMatchers
-import org.scalatest.mock.MockitoSugar
+import _root_.org.scalatest.Spec
+import _root_.org.scalatest.matchers.ShouldMatchers
+import _root_.org.scalatest.mock.MockitoSugar
 import _root_.org.apache.http.client.HttpClient
 import net.gfxmonk.android.pagefeed._
 

@@ -12,9 +12,10 @@ class Preference[T](val key:String, val default:T) {
 object Preferences {
 	val ALWAYS_DOWNLOAD_CONTENT = new Preference("PREF_ALWAYS_DOWNLOAD_CONTENT", false)
 	val TEXT_BRIGHTNESS = new Preference("TEXT_BRIGHTNESS", 1.0)
+	lazy val sharedPreferencesKey = classOf[MainActivity].getName()
 
 	def apply(ctx:Context) = {
-		ctx.getSharedPreferences(classOf[MainActivity].getName(), Context.MODE_PRIVATE)
+		ctx.getSharedPreferences(sharedPreferencesKey, Context.MODE_PRIVATE)
 	}
 
 	def get(ctx:Context, pref:Preference[Double]) = {
@@ -29,6 +30,7 @@ object Preferences {
 class Preferences extends PreferenceActivity {
 	override def onCreate(savedInstanceState: Bundle) = {
 		super.onCreate(savedInstanceState)
+		getPreferenceManager().setSharedPreferencesName(Preferences.sharedPreferencesKey)
 		addPreferencesFromResource(R.xml.userpreferences)
 		findPreference("ACCOUNT_SETTINGS").setIntent(accountSettingsIntent)
 	}

@@ -15,6 +15,7 @@ object Contract {
 		val TITLE= "title"
 		val BODY = "body"
 		val SCROLL = "scroll"
+		val HAS_CONTENT = "has_content"
 		val ID = "_id"
 	}
 
