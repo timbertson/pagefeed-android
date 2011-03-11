@@ -119,17 +119,24 @@ class MainActivity extends ListActivity {
 				{
 					val dirtyIndicator = view.asInstanceOf[View]
 					val dirty = cursor.getInt(dirtyIndex) > 0
+					val has_content = cursor.getInt(dirtyIndex) > 0
 					val body = !TextUtils.isEmpty(cursor.getString(bodyIndex))
-					Tuple(dirty, body) match {
-						case (true, _) => dirtyIndicator.setBackgroundResource(R.drawable.ring)
-						case (false, false) => dirtyIndicator.setBackgroundResource(R.drawable.incomplete_circle)
-						case (false, true) => {
+					if(dirty) {
+						dirtyIndicator.setBackgroundResource(R.drawable.red_ring)
+					} else {
+						if(body) {
 							val drawable = getResources().getDrawable(R.drawable.read_progress).asInstanceOf[LayerDrawable]
 							if(body) {
 								val arc = makeProcressArc(cursor.getFloat(progressIndex))
 								drawable.setDrawableByLayerId(R.id.progress_arc, arc)
 							}
 							dirtyIndicator.setBackgroundDrawable(drawable)
+						} else {
+							if(has_content) {
+								dirtyIndicator.setBackgroundResource(R.drawable.grey_ring)
+							} else {
+								dirtyIndicator.setBackgroundResource(R.drawable.incomplete_circle)
+							}
 						}
 					}
 				}
