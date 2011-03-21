@@ -28,12 +28,19 @@ class PagefeedWeb(web: HttpClient) {
 	import PagefeedWeb._
 
 	def add(url:String):Option[Url] = {
-		val response = post(BASE + "page/", Map("url" -> url))
 		try {
-			parse(response).firstOption
+			val response = post(BASE + "page/", Map("url" -> url))
+			try {
+				return parse(response).firstOption
+			} catch {
+				case e:ParseException => {
+					Util.info("after adding item remotely, failed to parse JSON: " + response)
+					return None
+				}
+			}
 		} catch {
-			case e:ParseException => {
-				Util.info("after adding item remotely, failed to parse JSON: " + response)
+			case e:HttpException => {
+				Util.info("after adding item remotely, got server error: " + e)
 				return None
 			}
 		}
